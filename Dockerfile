@@ -28,6 +28,7 @@ RUN apt-get update \
     cmake-curses-gui \
     python3.8-dev \
     python3.8-distutils \
+    python3-eccodes \
     libssl-dev \
     libboost-all-dev \
     libnetcdf-dev \
