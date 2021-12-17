@@ -23,4 +23,5 @@ isubclw = 2
 for rank in range(6):
     rlw = RadLWClass(rank, iovrlw, isubclw)
     rlw.create_input_data(rank)
-    rlw.lwrad(rank, do_subtest=False)
+    #rlw.lwrad(rank, do_subtest=False)
+    rlw.time_lwrad(rank)
