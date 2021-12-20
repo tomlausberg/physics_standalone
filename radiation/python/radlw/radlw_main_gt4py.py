@@ -3168,23 +3168,5 @@ class RadLWClass:
         )
 
         timings["rtrnmc"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        return timings
 
-        valdict = dict()
-        outdict_np = dict()
-
-        valdict = read_data(
-            os.path.join(FORTRANDATA_DIR, "LW"), "lwrad", rank, 0, False, self.outvars
-        )
-        outdict_np = convert_gt4py_output_for_validation(
-            self.outdict_gt4py, self.outvars
-        )
-
-        print("Testing final output...")
-        print(" ")
-        compare_data(valdict, outdict_np)
-        print(" ")
-        print("lwrad validates!")
-        print(" ")
-
-        with open("timings.json") as timings_json:
-            json.dump(timings,timings_json)
