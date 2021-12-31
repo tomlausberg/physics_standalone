@@ -1,12 +1,15 @@
-from test_stencil import test_multidim_16x, test_multidim_32x, test_normal_16x, FIELD_TYPE, MULTIDIM_TYPE, test_normal_32x
+from test_stencil import test_multidim_16x, test_multidim_32x, test_normal_16x, FIELD_TYPE, MULTIDIM_TYPE, test_normal_32x, band_type
 import test_stencil
 import gt4py.storage as gt_storage
 import numpy as np
 import os
+print("Imports done")
 
 backend = os.getenv("GT4PY_BACKEND")
 
-field_shape = (100,100,100)
+field_shape = (192,192,79)
+print("Fieldshape:")
+print(field_shape)
 
 ret_field = gt_storage.zeros(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
 field01 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
@@ -44,39 +47,42 @@ field32 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, 
 
 
 
-multidim_ret_field = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16))
-multidim_field01 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16))
-multidim_field02 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field03 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field04 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field05 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field06 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field07 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field08 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field09 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field10 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field11 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field12 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field13 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field14 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field15 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field16 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field17 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field18 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field19 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field20 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field21 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field22 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field23 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field24 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field25 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field26 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field27 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field28 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field29 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field30 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field31 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
-multidim_field32 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=(24,1), dtype=(np.float64,16)) 
+multidim_ret_field = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type)
+multidim_field01 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type)
+multidim_field02 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field03 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field04 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field05 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field06 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field07 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field08 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field09 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field10 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field11 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field12 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field13 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field14 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field15 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field16 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field17 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field18 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field19 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field20 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field21 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field22 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field23 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field24 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field25 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field26 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field27 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field28 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field29 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field30 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field31 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+multidim_field32 = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type) 
+
+
+print("Fields initialized")
 
 test_normal_16x(
     ret_field,
