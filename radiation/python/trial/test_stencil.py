@@ -307,36 +307,36 @@ def test_multidim_32x(
             field32[0,0,0][i]= 2*i
     
     with computation(FORWARD), interval(1,None):
-        for i in range(16):
-            ret_field[0,0,0][i] = field01[0,0,0][i] \
-                + field02[0,0,0][i] \
-                + field03[0,0,0][i] \
-                + field04[0,0,0][i] \
-                + field05[0,0,0][i] \
-                + field06[0,0,0][i] \
-                + field07[0,0,0][i] \
-                + field08[0,0,0][i] \
-                + field09[0,0,0][i] \
-                + field10[0,0,0][i] \
-                + field11[0,0,0][i] \
-                + field12[0,0,0][i] \
-                + field13[0,0,0][i] \
-                + field14[0,0,0][i] \
-                + field15[0,0,0][i] \
-                + field16[0,0,0][i] \
-                + field17[0,0,0][i] \
-                + field18[0,0,0][i] \
-                + field19[0,0,0][i] \
-                + field20[0,0,0][i] \
-                + field21[0,0,0][i] \
-                + field22[0,0,0][i] \
-                + field23[0,0,0][i] \
-                + field24[0,0,0][i] \
-                + field25[0,0,0][i] \
-                + field26[0,0,0][i] \
-                + field27[0,0,0][i] \
-                + field28[0,0,0][i] \
-                + field29[0,0,0][i] \
-                + field30[0,0,0][i] \
-                + field31[0,0,0][i] \
-                + field32[0,0,0][i]
+        for band in range(16):
+            ret_field[0,0,0][band] = field01[0,0,0][band] \
+                + field02[0,0,0][band] \
+                + field03[0,0,0][band] \
+                + field04[0,0,0][band] \
+                + field05[0,0,0][band] \
+                + field06[0,0,0][band] \
+                + field07[0,0,0][band] \
+                + field08[0,0,0][band] \
+                + field09[0,0,0][band] \
+                + field10[0,0,0][band] \
+                + field11[0,0,0][band] \
+                + field12[0,0,0][band] \
+                + field13[0,0,0][band] \
+                + field14[0,0,0][band] \
+                + field15[0,0,0][band] \
+                + field16[0,0,0][band] \
+                + field17[0,0,0][band] \
+                + field18[0,0,0][band] \
+                + field19[0,0,0][band] \
+                + field20[0,0,0][band] \
+                + field21[0,0,0][band] \
+                + field22[0,0,0][band] \
+                + field23[0,0,0][band] \
+                + field24[0,0,0][band] \
+                + field25[0,0,0][band] \
+                + field26[0,0,0][band] \
+                + field27[0,0,0][band] \
+                + field28[0,0,0][band] \
+                + field29[0,0,0][band] \
+                + field30[0,0,0][band] \
+                + field31[0,0,0][band] \
+                + field32[0,0,0][band]
