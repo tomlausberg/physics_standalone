@@ -272,69 +272,71 @@ def test_multidim_32x(
     field32: MULTIDIM_TYPE,
     ):
     with computation(FORWARD), interval(1,None):
-        field01[0,0,0][0]= 2
-        field02[0,0,0][0]= 2
-        field03[0,0,0][0]= 2
-        field04[0,0,0][0]= 2
-        field05[0,0,0][0]= 2
-        field06[0,0,0][0]= 2
-        field07[0,0,0][0]= 2
-        field08[0,0,0][0]= 2
-        field09[0,0,0][0]= 2
-        field10[0,0,0][0]= 2
-        field11[0,0,0][0]= 2
-        field12[0,0,0][0]= 2
-        field13[0,0,0][0]= 2
-        field14[0,0,0][0]= 2
-        field15[0,0,0][0]= 2
-        field16[0,0,0][0]= 2
-        field17[0,0,0][0]= 2
-        field18[0,0,0][0]= 2
-        field19[0,0,0][0]= 2
-        field20[0,0,0][0]= 2
-        field21[0,0,0][0]= 2
-        field22[0,0,0][0]= 2
-        field23[0,0,0][0]= 2
-        field24[0,0,0][0]= 2
-        field25[0,0,0][0]= 2
-        field26[0,0,0][0]= 2
-        field27[0,0,0][0]= 2
-        field28[0,0,0][0]= 2
-        field29[0,0,0][0]= 2
-        field30[0,0,0][0]= 2
-        field31[0,0,0][0]= 2
-        field32[0,0,0][0]= 2
+        for i in range(16):
+            field01[0,0,0][i]= 2*i
+            field02[0,0,0][i]= 2*i
+            field03[0,0,0][i]= 2*i
+            field04[0,0,0][i]= 2*i
+            field05[0,0,0][i]= 2*i
+            field06[0,0,0][i]= 2*i
+            field07[0,0,0][i]= 2*i
+            field08[0,0,0][i]= 2*i
+            field09[0,0,0][i]= 2*i
+            field10[0,0,0][i]= 2*i
+            field11[0,0,0][i]= 2*i
+            field12[0,0,0][i]= 2*i
+            field13[0,0,0][i]= 2*i
+            field14[0,0,0][i]= 2*i
+            field15[0,0,0][i]= 2*i
+            field16[0,0,0][i]= 2*i
+            field17[0,0,0][i]= 2*i
+            field18[0,0,0][i]= 2*i
+            field19[0,0,0][i]= 2*i
+            field20[0,0,0][i]= 2*i
+            field21[0,0,0][i]= 2*i
+            field22[0,0,0][i]= 2*i
+            field23[0,0,0][i]= 2*i
+            field24[0,0,0][i]= 2*i
+            field25[0,0,0][i]= 2*i
+            field26[0,0,0][i]= 2*i
+            field27[0,0,0][i]= 2*i
+            field28[0,0,0][i]= 2*i
+            field29[0,0,0][i]= 2*i
+            field30[0,0,0][i]= 2*i
+            field31[0,0,0][i]= 2*i
+            field32[0,0,0][i]= 2*i
     
     with computation(FORWARD), interval(1,None):
-        ret_field[0,0,0] = field01[0,0,0][0] \
-            + field02[0,0,0][0] \
-            + field03[0,0,0][0] \
-            + field04[0,0,0][0] \
-            + field05[0,0,0][0] \
-            + field06[0,0,0][0] \
-            + field07[0,0,0][0] \
-            + field08[0,0,0][0] \
-            + field09[0,0,0][0] \
-            + field10[0,0,0][0] \
-            + field11[0,0,0][0] \
-            + field12[0,0,0][0] \
-            + field13[0,0,0][0] \
-            + field14[0,0,0][0] \
-            + field15[0,0,0][0] \
-            + field16[0,0,0][0] \
-            + field17[0,0,0][0] \
-            + field18[0,0,0][0] \
-            + field19[0,0,0][0] \
-            + field20[0,0,0][0] \
-            + field21[0,0,0][0] \
-            + field22[0,0,0][0] \
-            + field23[0,0,0][0] \
-            + field24[0,0,0][0] \
-            + field25[0,0,0][0] \
-            + field26[0,0,0][0] \
-            + field27[0,0,0][0] \
-            + field28[0,0,0][0] \
-            + field29[0,0,0][0] \
-            + field30[0,0,0][0] \
-            + field31[0,0,0][0] \
-            + field32[0,0,0][0]
+        for i in range(16):
+            ret_field[0,0,0][i] = field01[0,0,0][i] \
+                + field02[0,0,0][i] \
+                + field03[0,0,0][i] \
+                + field04[0,0,0][i] \
+                + field05[0,0,0][i] \
+                + field06[0,0,0][i] \
+                + field07[0,0,0][i] \
+                + field08[0,0,0][i] \
+                + field09[0,0,0][i] \
+                + field10[0,0,0][i] \
+                + field11[0,0,0][i] \
+                + field12[0,0,0][i] \
+                + field13[0,0,0][i] \
+                + field14[0,0,0][i] \
+                + field15[0,0,0][i] \
+                + field16[0,0,0][i] \
+                + field17[0,0,0][i] \
+                + field18[0,0,0][i] \
+                + field19[0,0,0][i] \
+                + field20[0,0,0][i] \
+                + field21[0,0,0][i] \
+                + field22[0,0,0][i] \
+                + field23[0,0,0][i] \
+                + field24[0,0,0][i] \
+                + field25[0,0,0][i] \
+                + field26[0,0,0][i] \
+                + field27[0,0,0][i] \
+                + field28[0,0,0][i] \
+                + field29[0,0,0][i] \
+                + field30[0,0,0][i] \
+                + field31[0,0,0][i] \
+                + field32[0,0,0][i]
