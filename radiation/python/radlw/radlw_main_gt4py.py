@@ -1999,6 +1999,65 @@ class RadLWClass:
         print("lwrad validates!")
         print(" ")
 
+    def minimum_timings(self, rank):
+        timings = {}
+        exec_info = {}
+
+        firstloop(
+            self.indict_gt4py["plyr"],
+            self.indict_gt4py["plvl"],
+            self.indict_gt4py["tlyr"],
+            self.indict_gt4py["tlvl"],
+            self.indict_gt4py["qlyr"],
+            self.indict_gt4py["olyr"],
+            self.indict_gt4py["gasvmr"],
+            self.indict_gt4py["clouds"],
+            self.indict_gt4py["icsdlw"],
+            self.indict_gt4py["faerlw"],
+            self.indict_gt4py["semis"],
+            self.indict_gt4py["tsfg"],
+            self.indict_gt4py["dz"],
+            self.indict_gt4py["delp"],
+            self.indict_gt4py["de_lgth"],
+            self.locdict_gt4py["cldfrc"],
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["tavel"],
+            self.locdict_gt4py["delp"],
+            self.locdict_gt4py["dz"],
+            self.locdict_gt4py["h2ovmr"],
+            self.locdict_gt4py["o3vmr"],
+            self.locdict_gt4py["coldry"],
+            self.locdict_gt4py["colbrd"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["wx"],
+            self.locdict_gt4py["tauaer"],
+            self.locdict_gt4py["semiss0"],
+            self.locdict_gt4py["semiss"],
+            self.locdict_gt4py["tem11"],
+            self.locdict_gt4py["tem22"],
+            self.locdict_gt4py["tem00"],
+            self.locdict_gt4py["summol"],
+            self.locdict_gt4py["pwvcm"],
+            self.locdict_gt4py["clwp"],
+            self.locdict_gt4py["relw"],
+            self.locdict_gt4py["ciwp"],
+            self.locdict_gt4py["reiw"],
+            self.locdict_gt4py["cda1"],
+            self.locdict_gt4py["cda2"],
+            self.locdict_gt4py["cda3"],
+            self.locdict_gt4py["cda4"],
+            self.locdict_gt4py["secdiff"],
+            self.A0,
+            self.A1,
+            self.A2,
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info
+        )
+        timings["firstloop"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        return timings
+        
     def time_lwrad(self, rank):
         """Time the main longwave radiation scheme
 
