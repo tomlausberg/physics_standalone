@@ -492,7 +492,7 @@ class RadSWClass:
         lookupdict_gt4py = loadlookupdata("cldprtb", "radsw")
 
         # Load lookup data for setcoef
-        ds = xr.open_dataset("../lookupdata/radsw_ref_data.nc")
+        ds = xr.open_dataset(os.path.join(LOOKUP_DIR, "radsw_ref_data.nc"))
         preflog = ds["preflog"].data
         preflog = np.tile(preflog[None, None, None, :], (npts, 1, nlp1, 1))
         tref = ds["tref"].data

@@ -72,7 +72,7 @@ for tile in range(6):
 
             ds = xr.Dataset({"rand2d": (("iplon", "n"), rand2d)})
 
-            dout = "../lookupdata/rand2d_tile" + str(tile) + "_" + smallscheme + ".nc"
+            dout = os.path.join(LOOKUP_DIR,"rand2d_tile" + str(tile) + "_" + smallscheme + ".nc")
             print(dout)
 
             ds.to_netcdf(dout)
@@ -99,7 +99,7 @@ for tile in range(6):
 
         ds = xr.Dataset({"rand2d": (("iplon", "n"), rand2d)})
 
-        dout = "../lookupdata/rand2d_tile" + str(tile) + "_" + smallscheme + ".nc"
+        dout = os.path.join(LOOKUP_DIR,"rand2d_tile" + str(tile) + "_" + smallscheme + ".nc")
         print(dout)
 
         ds.to_netcdf(dout)

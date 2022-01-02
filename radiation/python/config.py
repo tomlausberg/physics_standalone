@@ -6,6 +6,7 @@ import gt4py
 IS_DOCKER = (os.getenv("IS_DOCKER") == "True") if ("IS_DOCKER" in os.environ) else False
 IS_TEST = (os.getenv("IS_TEST") == "True") if ("IS_TEST" in os.environ) else False
 backend = (os.getenv("BACKEND")) if ("BACKEND" in os.environ) else "gtc:gt:cpu_ifirst"
+radiation_input = (os.getenv("RADIATION_INPUT")) if ("RADIATION_INPUT" in os.environ) else "../../"
 
 if IS_DOCKER:
     if IS_TEST:
@@ -26,28 +27,17 @@ gt4py.config.build_settings["extra_compile_args"]["cxx"].extend(
 )
 if IS_DOCKER:
     SERIALBOX_DIR = "/usr/local/serialbox"
+    sys.path.append(SERIALBOX_DIR + "/python")
     if IS_TEST:
-        LOOKUP_DIR = "/deployed/radiation/python/lookupdata"
-        FORTRANDATA_DIR = "/deployed/radiation/fortran/data"
-        LW_SERIALIZED_DIR = "/deployed/radiation/fortran/radlw/dump"
-        SW_SERIALIZED_DIR = "/deployed/radiation/fortran/radsw/dump"
+        radiation_input = "/deployed/radiation/"
     else:
-        LOOKUP_DIR = "/work/radiation/python/lookupdata"
-        FORTRANDATA_DIR = "/work/radiation/fortran/data"
-        LW_SERIALIZED_DIR = "/work/radiation/fortran/radlw/dump"
-        SW_SERIALIZED_DIR = "/work/radiation/fortran/radsw/dump"
-        FORCING_DIR = "/work/radiation/python/forcing"
-else:
-    SERIALBOX_DIR = "/Users/andrewp/Documents/code/serialbox2/install"
-    LOOKUP_DIR = "../../python/lookupdata"
-    FORTRANDATA_DIR = "../../fortran/data"
-    LW_SERIALIZED_DIR = "../../fortran/radlw/dump"
-    SW_SERIALIZED_DIR = "../../fortran/radsw/dump"
-    FORCING_DIR = "../../python/forcing"
+        radiation_input = "/work/radiation/"
 
-backend = "gtc:gt:cpu_ifirst"
-
-sys.path.append(SERIALBOX_DIR + "/python")
+LOOKUP_DIR = os.path.join(radiation_input, "python/lookupdata")
+FORTRANDATA_DIR = os.path.join(radiation_input, "fortran/data")
+LW_SERIALIZED_DIR = os.path.join(radiation_input, "fortran/radlw/dump")
+SW_SERIALIZED_DIR = os.path.join(radiation_input, "fortran/radsw/dump")
+FORCING_DIR = os.path.join(radiation_input, "python/forcing")
 
 npts = 24
 

@@ -33,7 +33,7 @@ for run in range(number_of_runs):
     for rank in range(6):
         rlw = RadLWClass(rank, iovrlw, isubclw)
         rlw.create_input_data(rank)
-        current_timings = rlw.time_lwrad(rank)
+        current_timings = rlw.minimum_timings(rank)
         for key, val in current_timings.items():
             timings[key] = timings.get(key,0) + val
 
