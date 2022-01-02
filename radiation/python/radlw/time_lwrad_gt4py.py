@@ -11,7 +11,7 @@ IS_DOCKER = (os.getenv("IS_DOCKER") == "True") if ("IS_DOCKER" in os.environ) el
 if IS_TEST:
     sys.path.insert(0, "/deployed/radiation/python")
 elif IS_DAINT:
-    sys.path.insert(0, "/users/tlausber/physics_standalone/radiation/python")
+    sys.path.insert(0, "/users/tlausber/toml_standalone/radiation/python")
 elif IS_DOCKER:
     sys.path.insert(0, "/work/radiation/python")
 else:
