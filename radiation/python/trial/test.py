@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 
-backend = os.getenv("GT4PY_BACKEND")
+backend = os.getenv("BACKEND")
 field_shape = (256,256,79)
 
 test_normal = False

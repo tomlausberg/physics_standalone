@@ -14,7 +14,7 @@ band_type = (np.float64, (16,))
 FIELD_TYPE = Field[np.float64]
 MULTIDIM_TYPE = Field[band_type]
 
-backend = os.getenv("GT4PY_BACKEND")
+backend = os.getenv("BACKEND")
 
     
 @stencil(backend=backend)
