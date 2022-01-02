@@ -67,7 +67,6 @@ from radsw.radsw_param import (
 
 rebuild = False
 validate = True
-backend = "gtc:gt:cpu_ifirst"
 
 # Eventually these will be provided by rad_initialize
 isubcsw = 2

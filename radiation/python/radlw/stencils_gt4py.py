@@ -68,7 +68,6 @@ from config import *
 
 rebuild = False
 validate = True
-backend = "gtc:gt:cpu_ifirst"
 
 amdw = con_amd / con_amw
 amdo3 = con_amd / con_amo3
