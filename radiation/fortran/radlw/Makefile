@@ -34,7 +34,7 @@ SRC = \
   radiation_clouds.F \
   radiation_aerosols.F \
   radsw_main.F \
-  radlw_main2.F  \
+  radlw_main_timed2.F  \
   GFS_typedefs.F \
   GFS_radiation_driver.F \
   rad_initialize.F \
@@ -43,7 +43,12 @@ SRC = \
 OBJ = $(SRC:.F=.o)
 PP = $(SRC:.F=.F90)
 
-F90 = mpif90
+ifeq (${IS_DOCKER}, False)
+	F90 = ftn
+else
+	F90 = mpif90
+endif
+
 #FFLAGS = -fdec -fdefault-real-8 -fno-fast-math -ffree-form -ffree-line-length-none \
 #  -fno-backslash -fimplicit-none -fno-range-check -pedantic -Waliasing -Wampersand \
 #  -Wline-truncation -Wsurprising -Wtabs -Wunderflow -O0 -g -fbacktrace \
@@ -52,9 +57,13 @@ F90 = mpif90
 #  -DSERIALIZE -I$(SERIALBOX_DIR)/include
 FFLAGS = -cpp -fdec -fdefault-real-8 -fno-fast-math -ffree-form -ffree-line-length-none -finit-local-zero\
   -fno-backslash -fimplicit-none -fno-range-check -O3 -ftree-vectorize -funroll-loops \
-  -DSERIALIZE -I$(SERIALBOX_DIR)/include
+  -I$(SERIALBOX_DIR)/include
 
-LD = mpif90
+ifeq (${IS_DOCKER}, False)
+	LD = ftn
+else
+	LD = mpif90
+endif
 LDFLAGS = -O3 -ftree-vectorize -funroll-loops $(SERIALBOX_DIR)/lib/libSerialboxFortran.a $(SERIALBOX_DIR)/lib/libSerialboxC.a \
   $(SERIALBOX_DIR)/lib/libSerialboxCore.a -L$(NETCDF_LIB) -lnetcdff -lnetcdf \
   -lpthread -lstdc++ -lstdc++fs

@@ -43,7 +43,12 @@ SRC = \
 OBJ = $(SRC:.F=.o)
 PP = $(SRC:.F=.F90)
 
-F90 = mpif90
+ifeq (${IS_DOCKER}, False)
+	F90 = ftn
+else
+	F90 = mpif90
+endif
+
 #FFLAGS = -fdec -fdefault-real-8 -fno-fast-math -ffree-form -ffree-line-length-none \
 #  -fno-backslash -fimplicit-none -fno-range-check -pedantic -Waliasing -Wampersand \
 #  -Wline-truncation -Wsurprising -Wtabs -Wunderflow -O0 -g -fbacktrace \
@@ -54,7 +59,12 @@ FFLAGS = -cpp -fdec -fdefault-real-8 -fno-fast-math -ffree-form -ffree-line-leng
   -fno-backslash -fimplicit-none -fno-range-check -O3 -ftree-vectorize -funroll-loops \
   -DSERIALIZE -I$(SERIALBOX_DIR)/include
 
-LD = mpif90
+ifeq (${IS_DOCKER}, False)
+	LD = ftn
+else
+	LD = mpif90
+endif
+
 LDFLAGS = -O3 -ftree-vectorize -funroll-loops $(SERIALBOX_DIR)/lib/libSerialboxFortran.a $(SERIALBOX_DIR)/lib/libSerialboxC.a \
   $(SERIALBOX_DIR)/lib/libSerialboxCore.a -L$(NETCDF_LIB) -lnetcdff -lnetcdf \
   -lpthread -lstdc++ -lstdc++fs
