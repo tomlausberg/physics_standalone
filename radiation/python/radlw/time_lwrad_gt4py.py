@@ -19,7 +19,7 @@ else:
 
 
 print(sys.path)
-from radlw.radlw_main_gt4py import RadLWClass
+from radlw.radlw_main_gt4py_min import RadLWClass
 #from radlw_main_gt4py import RadLWCLass
 me = 0
 iovrlw = 1
