@@ -26,7 +26,7 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py import firstloop
+from stencils_gt4py_min import firstloop
 
 import serialbox as ser
 
