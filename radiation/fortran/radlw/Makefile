@@ -1,8 +1,10 @@
 
 SERIALBOX_DIR ?= /usr/local/serialbox
 NETCDF_LIB ?= /lib/x86_64-linux-gnu
-NCEPLIBS_DIR ?= /NCEPlibs
-NCEPLIBS = -L$(NCEPLIBS_DIR) -lnemsio_d -lbacio_4 -lsp_v2.0.2_d -lw3emc_d -lw3nco_d
+# NCEPLIBS_DIR ?= /NCEPlibs
+# NCEPLIBS = -L$(NCEPLIBS_DIR) -lnemsio_d -lbacio_4 -lsp_v2.0.2_d -lw3emc_d -lw3nco_d
+NCEPLIBS_DIR = /project/s1053/install/ncep/gnu
+NCEPLIBS = -L$(NCEPLIBS_DIR)/lib -lbacio_4 -lsp_v2.0.2_d -lw3nco_d
 
 TARGET = main.x
 
