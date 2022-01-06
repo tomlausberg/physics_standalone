@@ -281,3 +281,618 @@ def firstloop(
             for m in range(1, maxgas):
                 summol += colamt[0, 0, 0][m]
             colbrd = coldry - summol
+
+
+@gtscript.stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "nbands": nbands,
+        "ilwcliq": ilwcliq,
+        "ngptlw": ngptlw,
+        "isubclw": isubclw,
+    },
+)
+def cldprop(
+    cfrac: FIELD_FLT,
+    cliqp: FIELD_FLT,
+    reliq: FIELD_FLT,
+    cicep: FIELD_FLT,
+    reice: FIELD_FLT,
+    cdat1: FIELD_FLT,
+    cdat2: FIELD_FLT,
+    cdat3: FIELD_FLT,
+    cdat4: FIELD_FLT,
+    dz: FIELD_FLT,
+    cldfmc: Field[type_ngptlw],
+    taucld: Field[type_nbands],
+    cldtau: FIELD_FLT,
+    absliq1: Field[(DTYPE_FLT, (58, nbands))],
+    absice1: Field[(DTYPE_FLT, (2, 5))],
+    absice2: Field[(DTYPE_FLT, (43, nbands))],
+    absice3: Field[(DTYPE_FLT, (46, nbands))],
+    ipat: Field[(DTYPE_INT, (nbands,))],
+    tauliq: Field[type_nbands],
+    tauice: Field[type_nbands],
+    cldf: FIELD_FLT,
+    dgeice: FIELD_FLT,
+    factor: FIELD_FLT,
+    fint: FIELD_FLT,
+    tauran: FIELD_FLT,
+    tausnw: FIELD_FLT,
+    cldliq: FIELD_FLT,
+    refliq: FIELD_FLT,
+    cldice: FIELD_FLT,
+    refice: FIELD_FLT,
+    index: FIELD_INT,
+    ia: FIELD_INT,
+    lcloudy: Field[(DTYPE_INT, (ngptlw,))],
+    cdfunc: Field[type_ngptlw],
+    tem1: FIELD_FLT,
+    lcf1: FIELD_2DBOOL,
+    cldsum: FIELD_FLT,
+):
+    from __externals__ import nbands, ilwcliq, ngptlw, isubclw
+
+    # Compute flag for whether or not there is cloud in the vertical column
+    with computation(FORWARD):
+        with interval(0, 1):
+            cldsum = cfrac[0, 0, 1]
+        with interval(1, -1):
+            cldsum = cldsum[0, 0, -1] + cfrac[0, 0, 1]
+    with computation(FORWARD), interval(-2, -1):
+        lcf1 = cldsum > 0
+
+    with computation(FORWARD), interval(1, None):
+        if lcf1:
+            if ilwcliq > 0:
+                if cfrac > cldmin:
+                    tauran = absrain * cdat1
+                    if cdat3 > 0.0 and cdat4 > 10.0:
+                        tausnw = abssnow0 * 1.05756 * cdat3 / cdat4
+                    else:
+                        tausnw = 0.0
+
+                    cldliq = cliqp
+                    cldice = cicep
+                    refliq = reliq
+                    refice = reice
+
+                    if cldliq <= 0:
+                        for i in range(nbands):
+                            tauliq[0, 0, 0][i] = 0.0
+                    else:
+                        if ilwcliq == 1:
+                            factor = refliq - 1.5
+                            index = max(1, min(57, factor)) - 1
+                            fint = factor - (index + 1)
+
+                            for ib in range(nbands):
+                                tmp = cldliq * (
+                                    absliq1[0, 0, 0][index, ib]
+                                    + fint
+                                    * (
+                                        absliq1[0, 0, 0][index + 1, ib]
+                                        - absliq1[0, 0, 0][index, ib]
+                                    )
+                                )
+                                # workaround since max doesn't work in for loop in if statement
+                                tauliq[0, 0, 0][ib] = tmp if tmp > 0.0 else 0.0
+
+                    if cldice <= 0.0:
+                        for ib2 in range(nbands):
+                            tauice[0, 0, 0][ib2] = 0.0
+                    else:
+                        if ilwcice == 1:
+                            refice = min(130.0, max(13.0, refice))
+
+                            for ib3 in range(nbands):
+                                ia = ipat[0, 0, 0][ib3] - 1
+                                tmp = cldice * (
+                                    absice1[0, 0, 0][0, ia]
+                                    + absice1[0, 0, 0][1, ia] / refice
+                                )
+                                # workaround since max doesn't work in for loop in if statement
+                                tauice[0, 0, 0][ib3] = tmp if tmp > 0.0 else 0.0
+                        elif ilwcice == 2:
+                            factor = (refice - 2.0) / 3.0
+                            index = max(1, min(42, factor)) - 1
+                            fint = factor - (index + 1)
+
+                            for ib4 in range(nbands):
+                                tmp = cldice * (
+                                    absice2[0, 0, 0][index, ib4]
+                                    + fint
+                                    * (
+                                        absice2[0, 0, 0][index + 1, ib4]
+                                        - absice2[0, 0, 0][index, ib4]
+                                    )
+                                )
+                                # workaround since max doesn't work in for loop in if statement
+                                tauice[0, 0, 0][ib4] = tmp if tmp > 0.0 else 0.0
+
+                        elif ilwcice == 3:
+                            dgeice = max(5.0, 1.0315 * refice)  # v4.71 value
+                            factor = (dgeice - 2.0) / 3.0
+                            index = max(1, min(45, factor)) - 1
+                            fint = factor - (index + 1)
+
+                            for ib5 in range(nbands):
+                                tmp = cldice * (
+                                    absice3[0, 0, 0][index, ib5]
+                                    + fint
+                                    * (
+                                        absice3[0, 0, 0][index + 1, ib5]
+                                        - absice3[0, 0, 0][index, ib5]
+                                    )
+                                )
+                                # workaround since max doesn't work in for loop in if statement
+                                tauice[0, 0, 0][ib5] = tmp if tmp > 0.0 else 0.0
+
+                    for ib6 in range(nbands):
+                        taucld[0, 0, 0][ib6] = (
+                            tauice[0, 0, 0][ib6]
+                            + tauliq[0, 0, 0][ib6]
+                            + tauran
+                            + tausnw
+                        )
+
+            else:
+                if cfrac > cldmin:
+                    for ib7 in range(nbands):
+                        taucld[0, 0, 0][ib7] = cdat1
+
+            if isubclw > 0:
+                if cfrac < cldmin:
+                    cldf = 0.0
+                else:
+                    cldf = cfrac
+
+    # This section builds mcica_subcol from the fortran into cldprop.
+    # Here I've read in the generated random numbers until we figure out
+    # what to do with them. This will definitely need to change in future.
+    # Only the iovrlw = 1 option is ported from Fortran
+    with computation(PARALLEL), interval(2, None):
+        if lcf1:
+            tem1 = 1.0 - cldf[0, 0, -1]
+
+            for n in range(ngptlw):
+                if cdfunc[0, 0, -1][n] > tem1:
+                    cdfunc[0, 0, 0][n] = cdfunc[0, 0, -1][n]
+                else:
+                    cdfunc[0, 0, 0][n] = cdfunc[0, 0, 0][n] * tem1
+
+    with computation(PARALLEL), interval(1, None):
+        if lcf1:
+            tem1 = 1.0 - cldf[0, 0, 0]
+
+            for n2 in range(ngptlw):
+                if cdfunc[0, 0, 0][n2] >= tem1:
+                    lcloudy[0, 0, 0][n2] = 1
+                else:
+                    lcloudy[0, 0, 0][n2] = 0
+
+            for n3 in range(ngptlw):
+                if lcloudy[0, 0, 0][n3] == 1:
+                    cldfmc[0, 0, 0][n3] = 1.0
+                else:
+                    cldfmc[0, 0, 0][n3] = 0.0
+
+            cldtau = taucld[0, 0, 0][6]
+
+
+stpfac = 296.0 / 1013.0
+
+
+@stencil(
+    backend=backend, rebuild=rebuild, externals={"nbands": nbands, "stpfac": stpfac}
+)
+def setcoef(
+    pavel: FIELD_FLT,
+    tavel: FIELD_FLT,
+    tz: FIELD_FLT,
+    stemp: FIELD_2D,
+    h2ovmr: FIELD_FLT,
+    colamt: Field[type_maxgas],
+    coldry: FIELD_FLT,
+    colbrd: FIELD_FLT,
+    totplnk: Field[(DTYPE_FLT, (nplnk, nbands))],
+    pref: Field[(DTYPE_FLT, (59,))],
+    preflog: Field[(DTYPE_FLT, (59,))],
+    tref: Field[(DTYPE_FLT, (59,))],
+    chi_mls: Field[(DTYPE_FLT, (7, 59))],
+    delwave: Field[type_nbands],
+    laytrop: Field[bool],
+    pklay: Field[type_nbands],
+    pklev: Field[type_nbands],
+    jp: FIELD_INT,
+    jt: FIELD_INT,
+    jt1: FIELD_INT,
+    rfrate: Field[(DTYPE_FLT, (nrates, 2))],
+    fac00: FIELD_FLT,
+    fac01: FIELD_FLT,
+    fac10: FIELD_FLT,
+    fac11: FIELD_FLT,
+    selffac: FIELD_FLT,
+    selffrac: FIELD_FLT,
+    indself: FIELD_INT,
+    forfac: FIELD_FLT,
+    forfrac: FIELD_FLT,
+    indfor: FIELD_INT,
+    minorfrac: FIELD_FLT,
+    scaleminor: FIELD_FLT,
+    scaleminorn2: FIELD_FLT,
+    indminor: FIELD_INT,
+    tzint: FIELD_INT,
+    stempint: FIELD_INT,
+    tavelint: FIELD_INT,
+    indlay: FIELD_INT,
+    indlev: FIELD_INT,
+    tlyrfr: FIELD_FLT,
+    tlvlfr: FIELD_FLT,
+    jp1: FIELD_INT,
+    plog: FIELD_FLT,
+):
+    from __externals__ import nbands, stpfac
+
+    with computation(PARALLEL):
+        #  --- ...  calculate information needed by the radiative transfer routine
+        #           that is specific to this atmosphere, especially some of the
+        #           coefficients and indices needed to compute the optical depths
+        #           by interpolating data from stored reference atmospheres.
+        with interval(0, 1):
+            indlay = min(180, max(1, stemp - 159.0))
+            indlev = min(180, max(1, tz - 159.0))
+            tzint = tz
+            stempint = stemp
+            tlyrfr = stemp - stempint
+            tlvlfr = tz - tzint
+
+            for i0 in range(nbands):
+                tem1 = totplnk[0, 0, 0][indlay, i0] - totplnk[0, 0, 0][indlay - 1, i0]
+                tem2 = totplnk[0, 0, 0][indlev, i0] - totplnk[0, 0, 0][indlev - 1, i0]
+                pklay[0, 0, 0][i0] = delwave[0, 0, 0][i0] * (
+                    totplnk[0, 0, 0][indlay - 1, i0] + tlyrfr * tem1
+                )
+                pklev[0, 0, 0][i0] = delwave[0, 0, 0][i0] * (
+                    totplnk[0, 0, 0][indlev - 1, i0] + tlvlfr * tem2
+                )
+
+        #           calculate the integrated Planck functions for each band at the
+        #           surface, level, and layer temperatures.
+        with interval(1, None):
+            indlay = min(180, max(1, tavel - 159.0))
+            tavelint = tavel
+            tlyrfr = tavel - tavelint
+
+            indlev = min(180, max(1, tz - 159.0))
+            tzint = tz
+            tlvlfr = tz - tzint
+
+            #  --- ...  begin spectral band loop
+            for i in range(nbands):
+                pklay[0, 0, 0][i] = delwave[0, 0, 0][i] * (
+                    totplnk[0, 0, 0][indlay - 1, i]
+                    + tlyrfr
+                    * (totplnk[0, 0, 0][indlay, i] - totplnk[0, 0, 0][indlay - 1, i])
+                )
+                pklev[0, 0, 0][i] = delwave[0, 0, 0][i] * (
+                    totplnk[0, 0, 0][indlev - 1, i]
+                    + tlvlfr
+                    * (totplnk[0, 0, 0][indlev, i] - totplnk[0, 0, 0][indlev - 1, i])
+                )
+
+            #  --- ...  find the two reference pressures on either side of the
+            #           layer pressure. store them in jp and jp1. store in fp the
+            #           fraction of the difference (in ln(pressure)) between these
+            #           two values that the layer pressure lies.
+
+            plog = log(pavel)
+            jp = max(1, min(58, 36.0 - 5.0 * (plog + 0.04))) - 1
+            jp1 = jp + 1
+            #  --- ...  limit pressure extrapolation at the top
+            fp = max(0.0, min(1.0, 5.0 * (preflog[0, 0, 0][jp] - plog)))
+
+            #  --- ...  determine, for each reference pressure (jp and jp1), which
+            #           reference temperature (these are different for each
+            #           reference pressure) is nearest the layer temperature but does
+            #           not exceed it. store these indices in jt and jt1, resp.
+            #           store in ft (resp. ft1) the fraction of the way between jt
+            #           (jt1) and the next highest reference temperature that the
+            #           layer temperature falls.
+
+            tem1 = (tavel - tref[0, 0, 0][jp]) / 15.0
+            tem2 = (tavel - tref[0, 0, 0][jp1]) / 15.0
+            jt = max(1, min(4, 3.0 + tem1)) - 1
+            jt1 = max(1, min(4, 3.0 + tem2)) - 1
+            # --- ...  restrict extrapolation ranges by limiting abs(det t) < 37.5 deg
+            ft = max(-0.5, min(1.5, tem1 - (jt - 2)))
+            ft1 = max(-0.5, min(1.5, tem2 - (jt1 - 2)))
+
+            #  --- ...  we have now isolated the layer ln pressure and temperature,
+            #           between two reference pressures and two reference temperatures
+            #           (for each reference pressure).  we multiply the pressure
+            #           fraction fp with the appropriate temperature fractions to get
+            #           the factors that will be needed for the interpolation that yields
+            #           the optical depths (performed in routines taugbn for band n)
+
+            tem1 = 1.0 - fp
+            fac10 = tem1 * ft
+            fac00 = tem1 * (1.0 - ft)
+            fac11 = fp * ft1
+            fac01 = fp * (1.0 - ft1)
+
+            forfac = pavel * stpfac / (tavel * (1.0 + h2ovmr))
+            selffac = h2ovmr * forfac
+
+            #  --- ...  set up factors needed to separately include the minor gases
+            #           in the calculation of absorption coefficient
+
+            scaleminor = pavel / tavel
+            scaleminorn2 = (pavel / tavel) * (colbrd / (coldry + colamt[0, 0, 0][0]))
+
+            tem1 = (tavel - 180.8) / 7.2
+            indminor = min(18, max(1, tem1))
+            minorfrac = tem1 - indminor
+
+            #  --- ...  if the pressure is less than ~100mb, perform a different
+            #           set of species interpolations.
+
+            indfor = indfor
+            forfrac = forfrac
+            indself = indself
+            selffrac = selffrac
+            rfrate = rfrate
+            chi_mls = chi_mls
+            laytrop = laytrop
+
+            if plog > 4.56:
+
+                # compute troposphere mask, True in troposphere, False otherwise
+                laytrop = True
+
+                tem1 = (332.0 - tavel) / 36.0
+                indfor = min(2, max(1, tem1))
+                forfrac = tem1 - indfor
+
+                #  --- ...  set up factors needed to separately include the water vapor
+                #           self-continuum in the calculation of absorption coefficient.
+
+                tem1 = (tavel - 188.0) / 7.2
+                indself = min(9, max(1, tem1 - 7))
+                selffrac = tem1 - (indself + 7)
+
+                #  --- ...  setup reference ratio to be used in calculation of binary
+                #           species parameter in lower atmosphere.
+
+                rfrate[0, 0, 0][0, 0] = (
+                    chi_mls[0, 0, 0][0, jp] / chi_mls[0, 0, 0][1, jp]
+                )
+                rfrate[0, 0, 0][0, 1] = (
+                    chi_mls[0, 0, 0][0, jp + 1] / chi_mls[0, 0, 0][1, jp + 1]
+                )
+                rfrate[0, 0, 0][1, 0] = (
+                    chi_mls[0, 0, 0][0, jp] / chi_mls[0, 0, 0][2, jp]
+                )
+                rfrate[0, 0, 0][1, 1] = (
+                    chi_mls[0, 0, 0][0, jp + 1] / chi_mls[0, 0, 0][2, jp + 1]
+                )
+                rfrate[0, 0, 0][2, 0] = (
+                    chi_mls[0, 0, 0][0, jp] / chi_mls[0, 0, 0][3, jp]
+                )
+                rfrate[0, 0, 0][2, 1] = (
+                    chi_mls[0, 0, 0][0, jp + 1] / chi_mls[0, 0, 0][3, jp + 1]
+                )
+                rfrate[0, 0, 0][3, 0] = (
+                    chi_mls[0, 0, 0][0, jp] / chi_mls[0, 0, 0][5, jp]
+                )
+                rfrate[0, 0, 0][3, 1] = (
+                    chi_mls[0, 0, 0][0, jp + 1] / chi_mls[0, 0, 0][5, jp + 1]
+                )
+                rfrate[0, 0, 0][4, 0] = (
+                    chi_mls[0, 0, 0][3, jp] / chi_mls[0, 0, 0][1, jp]
+                )
+                rfrate[0, 0, 0][4, 1] = (
+                    chi_mls[0, 0, 0][3, jp + 1] / chi_mls[0, 0, 0][1, jp + 1]
+                )
+
+            else:
+                laytrop = False
+
+                tem1 = (tavel - 188.0) / 36.0
+                indfor = 3
+                forfrac = tem1 - 1.0
+
+                indself = 0
+                selffrac = 0.0
+
+                #  --- ...  setup reference ratio to be used in calculation of binary
+                #           species parameter in upper atmosphere.
+
+                rfrate[0, 0, 0][0, 0] = (
+                    chi_mls[0, 0, 0][0, jp] / chi_mls[0, 0, 0][1, jp]
+                )
+                rfrate[0, 0, 0][0, 1] = (
+                    chi_mls[0, 0, 0][0, jp + 1] / chi_mls[0, 0, 0][1, jp + 1]
+                )
+                rfrate[0, 0, 0][5, 0] = (
+                    chi_mls[0, 0, 0][2, jp] / chi_mls[0, 0, 0][1, jp]
+                )
+                rfrate[0, 0, 0][5, 1] = (
+                    chi_mls[0, 0, 0][2, jp + 1] / chi_mls[0, 0, 0][1, jp + 1]
+                )
+
+            #  --- ...  rescale selffac and forfac for use in taumol
+
+            selffac = colamt[0, 0, 0][0] * selffac
+            forfac = colamt[0, 0, 0][0] * forfac
+
+            #  --- ...  add one to computed indices for compatibility with later
+            #           subroutines
+
+            jp += 1
+            jt += 1
+            jt1 += 1
+
+
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "nspa": nspa[0],
+        "nspb": nspb[0],
+        "ng01": ng01,
+    },
+)
+def taugb01(
+    laytrop: FIELD_BOOL,
+    pavel: FIELD_FLT,
+    colamt: Field[type_maxgas],
+    colbrd: FIELD_FLT,
+    fac00: FIELD_FLT,
+    fac01: FIELD_FLT,
+    fac10: FIELD_FLT,
+    fac11: FIELD_FLT,
+    jp: FIELD_INT,
+    jt: FIELD_INT,
+    jt1: FIELD_INT,
+    selffac: FIELD_FLT,
+    selffrac: FIELD_FLT,
+    indself: FIELD_INT,
+    forfac: FIELD_FLT,
+    forfrac: FIELD_FLT,
+    indfor: FIELD_INT,
+    minorfrac: FIELD_FLT,
+    scaleminorn2: FIELD_FLT,
+    indminor: FIELD_INT,
+    fracs: Field[type_ngptlw],
+    taug: Field[type_ngptlw],
+    absa: Field[(DTYPE_FLT, (10, 65))],
+    absb: Field[(DTYPE_FLT, (10, 235))],
+    selfref: Field[(DTYPE_FLT, (10, 10))],
+    forref: Field[(DTYPE_FLT, (10, 4))],
+    fracrefa: Field[(DTYPE_FLT, (10,))],
+    fracrefb: Field[(DTYPE_FLT, (10,))],
+    ka_mn2: Field[(DTYPE_FLT, (10, 19))],
+    kb_mn2: Field[(DTYPE_FLT, (10, 19))],
+    ind0: FIELD_INT,
+    ind0p: FIELD_INT,
+    ind1: FIELD_INT,
+    ind1p: FIELD_INT,
+    inds: FIELD_INT,
+    indsp: FIELD_INT,
+    indf: FIELD_INT,
+    indfp: FIELD_INT,
+    indm: FIELD_INT,
+    indmp: FIELD_INT,
+    pp: FIELD_FLT,
+    corradj: FIELD_FLT,
+    scalen2: FIELD_FLT,
+    tauself: FIELD_FLT,
+    taufor: FIELD_FLT,
+    taun2: FIELD_FLT,
+):
+    from __externals__ import nspa, nspb, ng01
+
+    with computation(PARALLEL), interval(1, None):
+        # Workaround for bug in gt4py
+        jp = jp
+        jt = jt
+        jt1 = jt1
+        indself = indself
+        indfor = indfor
+        indminor = indminor
+        pavel = pavel
+        colbrd = colbrd
+        scaleminorn2 = scaleminorn2
+
+        if laytrop:
+            ind0 = ((jp - 1) * 5 + (jt - 1)) * nspa
+            ind1 = (jp * 5 + (jt1 - 1)) * nspa
+            inds = indself - 1
+            indf = indfor - 1
+            indm = indminor - 1
+
+            ind0p = ind0 + 1
+            ind1p = ind1 + 1
+            indsp = inds + 1
+            indfp = indf + 1
+            indmp = indm + 1
+
+            pp = pavel
+            scalen2 = colbrd * scaleminorn2
+            if pp < 250.0:
+                corradj = 1.0 - 0.15 * (250.0 - pp) / 154.4
+            else:
+                corradj = 1.0
+
+            for ig in range(ng01):
+                tauself = selffac * (
+                    selfref[0, 0, 0][ig, inds]
+                    + selffrac
+                    * (selfref[0, 0, 0][ig, indsp] - selfref[0, 0, 0][ig, inds])
+                )
+                taufor = forfac * (
+                    forref[0, 0, 0][ig, indf]
+                    + forfrac * (forref[0, 0, 0][ig, indfp] - forref[0, 0, 0][ig, indf])
+                )
+                taun2 = scalen2 * (
+                    ka_mn2[0, 0, 0][ig, indm]
+                    + minorfrac
+                    * (ka_mn2[0, 0, 0][ig, indmp] - ka_mn2[0, 0, 0][ig, indm])
+                )
+
+                taug[0, 0, 0][ig] = corradj * (
+                    colamt[0, 0, 0][0]
+                    * (
+                        fac00 * absa[0, 0, 0][ig, ind0]
+                        + fac10 * absa[0, 0, 0][ig, ind0p]
+                        + fac01 * absa[0, 0, 0][ig, ind1]
+                        + fac11 * absa[0, 0, 0][ig, ind1p]
+                    )
+                    + tauself
+                    + taufor
+                    + taun2
+                )
+
+                fracs[0, 0, 0][ig] = fracrefa[0, 0, 0][ig]
+
+        else:
+            ind0 = ((jp - 13) * 5 + (jt - 1)) * nspb
+            ind1 = ((jp - 12) * 5 + (jt1 - 1)) * nspb
+            indf = indfor - 1
+            indm = indminor - 1
+
+            ind0p = ind0 + 1
+            ind1p = ind1 + 1
+            indfp = indf + 1
+            indmp = indm + 1
+
+            scalen2 = colbrd * scaleminorn2
+            corradj = 1.0 - 0.15 * (pavel / 95.6)
+
+            for ig2 in range(ng01):
+                taufor = forfac * (
+                    forref[0, 0, 0][ig2, indf]
+                    + forfrac
+                    * (forref[0, 0, 0][ig2, indfp] - forref[0, 0, 0][ig2, indf])
+                )
+                taun2 = scalen2 * (
+                    kb_mn2[0, 0, 0][ig2, indm]
+                    + minorfrac
+                    * (kb_mn2[0, 0, 0][ig2, indmp] - kb_mn2[0, 0, 0][ig2, indm])
+                )
+
+                taug[0, 0, 0][ig2] = corradj * (
+                    colamt[0, 0, 0][0]
+                    * (
+                        fac00 * absb[0, 0, 0][ig2, ind0]
+                        + fac10 * absb[0, 0, 0][ig2, ind0p]
+                        + fac01 * absb[0, 0, 0][ig2, ind1]
+                        + fac11 * absb[0, 0, 0][ig2, ind1p]
+                    )
+                    + taufor
+                    + taun2
+                )
+
+                fracs[0, 0, 0][ig2] = fracrefb[0, 0, 0][ig2]

@@ -26,7 +26,7 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py_min import firstloop
+from stencils_gt4py_min import firstloop, validate, rebuild, setcoef, taugb01
 
 import serialbox as ser
 
@@ -648,6 +648,34 @@ class RadLWClass:
 
         self.lookupdict_gt4py = lookupdict_gt4py
 
+    def _load_random_numbers(self, rank):
+        """
+        Read in 2-D array of random numbers used in mcica_subcol, this will change
+        in the future once there is a solution for the RNG in python/gt4py
+
+        This serialized set of random numbers will be used for testing, and the python
+        RNG for running the model.
+
+        rand2d is shape (npts, ngptlw*nlay), and I will reshape it to (npts, 1, nlp1, ngptlw)
+        - First reshape to (npts, ngptlw, nlay)
+        - Second pad k axis with one zero
+        - Third switch order of k and data axes
+        """
+        ds = xr.open_dataset(
+            os.path.join(LOOKUP_DIR, "rand2d_tile" + str(rank) + "_lw.nc")
+        )
+        rand2d = ds["rand2d"][:, :].data
+        cdfunc = np.zeros((npts, ngptlw, nlay))
+        for n in range(npts):
+            cdfunc[n, :, :] = np.reshape(rand2d[n, :], (ngptlw, nlay), order="C")
+        cdfunc = np.insert(cdfunc, 0, 0, axis=2)
+        cdfunc = np.transpose(cdfunc, (0, 2, 1))
+
+        cdfunc = np.tile(cdfunc[:, None, :, :], (1, 1, 1, 1))
+        self.lookupdict_gt4py["cdfunc"] = create_storage_from_array(
+            cdfunc, backend, shape_nlp1, type_ngptlw
+        )
+
     def minimum_timings(self, rank):
         timings = {}
         exec_info = {}
@@ -705,5 +733,117 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["firstloop"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+
+        self._load_random_numbers(rank)
+
+        setcoef(
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["tavel"],
+            self.indict_gt4py["tlvl"],
+            self.indict_gt4py["tsfg"],
+            self.locdict_gt4py["h2ovmr"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["coldry"],
+            self.locdict_gt4py["colbrd"],
+            self.lookupdict_gt4py["totplnk"],
+            self.lookupdict_gt4py["pref"],
+            self.lookupdict_gt4py["preflog"],
+            self.lookupdict_gt4py["tref"],
+            self.lookupdict_gt4py["chi_mls"],
+            self.lookupdict_gt4py["delwave"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["pklay"],
+            self.locdict_gt4py["pklev"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.locdict_gt4py["rfrate"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["minorfrac"],
+            self.locdict_gt4py["scaleminor"],
+            self.locdict_gt4py["scaleminorn2"],
+            self.locdict_gt4py["indminor"],
+            self.locdict_gt4py["tzint"],
+            self.locdict_gt4py["stempint"],
+            self.locdict_gt4py["tavelint"],
+            self.locdict_gt4py["indlay"],
+            self.locdict_gt4py["indlev"],
+            self.locdict_gt4py["tlyrfr"],
+            self.locdict_gt4py["tlvlfr"],
+            self.locdict_gt4py["jp1"],
+            self.locdict_gt4py["plog"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info
+        )
+
+        timings["setcoef"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+
+
+        taugb01(
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colbrd"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["minorfrac"],
+            self.locdict_gt4py["scaleminorn2"],
+            self.locdict_gt4py["indminor"],
+            self.locdict_gt4py["fracs"],
+            self.locdict_gt4py["taug"],
+            self.lookupdict_gt4py1["absa"],
+            self.lookupdict_gt4py1["absb"],
+            self.lookupdict_gt4py1["selfref"],
+            self.lookupdict_gt4py1["forref"],
+            self.lookupdict_gt4py1["fracrefa"],
+            self.lookupdict_gt4py1["fracrefb"],
+            self.lookupdict_gt4py1["ka_mn2"],
+            self.lookupdict_gt4py1["kb_mn2"],
+            self.locdict_gt4py["ind0"],
+            self.locdict_gt4py["ind0p"],
+            self.locdict_gt4py["ind1"],
+            self.locdict_gt4py["ind1p"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            self.locdict_gt4py["indm"],
+            self.locdict_gt4py["indmp"],
+            self.locdict_gt4py["pp"],
+            self.locdict_gt4py["corradj"],
+            self.locdict_gt4py["scalen2"],
+            self.locdict_gt4py["tauself"],
+            self.locdict_gt4py["taufor"],
+            self.locdict_gt4py["taun2"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info
+        )
+        timings["taugb01"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+
+
         return timings
 
