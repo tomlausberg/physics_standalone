@@ -1,4 +1,4 @@
-from test_stencil import test_multidim_16x, test_multidim_32x, test_normal_16x, FIELD_TYPE, MULTIDIM_TYPE, test_normal_32x, band_type
+from test_stencil import test_multidim_16x, test_multidim_32x, test_normal_16x, FIELD_TYPE, MULTIDIM_TYPE, test_normal_32x, band_type, test_taugb03
 import test_stencil
 import gt4py.storage as gt_storage
 import numpy as np
@@ -50,7 +50,43 @@ if (test_normal):
     field30 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
     field31 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
     field32 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
-
+    field33 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field34 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field35 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field36 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field37 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field38 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field39 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field40 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field41 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field42 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field43 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field44 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field45 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field46 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field47 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field48 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field49 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field50 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field51 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field52 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field53 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field54 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field55 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field56 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field57 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field58 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field59 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field60 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field61 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field62 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field63 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field64 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field65 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field66 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field67 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field68 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
+    field69 = gt_storage.ones(backend=backend, shape=field_shape, dtype=np.float64, default_origin=(0, 0, 0))
 
 if(test_multidim):
     multidim_ret_field = gt_storage.zeros(backend=backend, default_origin=(0,0,0), shape=field_shape, dtype=band_type)
@@ -145,6 +181,80 @@ if (test_normal):
         field30,
         field31,
         field32
+    )
+    print(ret_field)
+
+    test_taugb03(
+        ret_field,
+        field01,
+        field02,
+        field03,
+        field04,
+        field05,
+        field06,
+        field07,
+        field08,
+        field09,
+        field10,
+        field11,
+        field12,
+        field13,
+        field14,
+        field15,
+        field16,
+        field17,
+        field18,
+        field19,
+        field20,
+        field21,
+        field22,
+        field23,
+        field24,
+        field25,
+        field26,
+        field27,
+        field28,
+        field29,
+        field30,
+        field31,
+        field32,
+        field33,
+        field34,
+        field35,
+        field36,
+        field37,
+        field38,
+        field39,
+        field40,
+        field41,
+        field42,
+        field43,
+        field44,
+        field45,
+        field46,
+        field47,
+        field48,
+        field49,
+        field50,
+        field51,
+        field52,
+        field53,
+        field54,
+        field55,
+        field56,
+        field57,
+        field58,
+        field59,
+        field60,
+        field61,
+        field62,
+        field63,
+        field64,
+        field65,
+        field66,
+        field67,
+        field68,
+        field69,
     )
     print(ret_field)
 
