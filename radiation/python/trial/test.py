@@ -6,10 +6,10 @@ import os
 
 
 backend = os.getenv("BACKEND")
-field_shape = (256,256,79)
+field_shape = (128,128,79)
 
-test_normal = False
-test_multidim = True
+test_normal = True
+test_multidim = False
 
 print("Imports done")
 print(f"Backend: {backend}")
@@ -221,40 +221,40 @@ if (test_normal):
         field33,
         field34,
         field35,
-        field36,
-        field37,
-        field38,
-        field39,
-        field40,
-        field41,
-        field42,
-        field43,
-        field44,
-        field45,
-        field46,
-        field47,
-        field48,
-        field49,
-        field50,
-        field51,
-        field52,
-        field53,
-        field54,
-        field55,
-        field56,
-        field57,
-        field58,
-        field59,
-        field60,
-        field61,
-        field62,
-        field63,
-        field64,
-        field65,
-        field66,
-        field67,
-        field68,
-        field69,
+        # field36,
+        # field37,
+        # field38,
+        # field39,
+        # field40,
+        # field41,
+        # field42,
+        # field43,
+        # field44,
+        # field45,
+        # field46,
+        # field47,
+        # field48,
+        # field49,
+        # field50,
+        # field51,
+        # field52,
+        # field53,
+        # field54,
+        # field55,
+        # field56,
+        # field57,
+        # field58,
+        # field59,
+        # field60,
+        # field61,
+        # field62,
+        # field63,
+        # field64,
+        # field65,
+        # field66,
+        # field67,
+        # field68,
+        # field69,
     )
     print(ret_field)
 
