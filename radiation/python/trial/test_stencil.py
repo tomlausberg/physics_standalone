@@ -379,21 +379,21 @@ def test_taugb03(
     field33: FIELD_TYPE,
     field34: FIELD_TYPE,
     field35: FIELD_TYPE,
-    # field36: FIELD_TYPE,
-    # field37: FIELD_TYPE,
-    # field38: FIELD_TYPE,
-    # field39: FIELD_TYPE,
-    # field40: FIELD_TYPE,
-    # field41: FIELD_TYPE,
-    # field42: FIELD_TYPE,
-    # field43: FIELD_TYPE,
-    # field44: FIELD_TYPE,
-    # field45: FIELD_TYPE,
-    # field46: FIELD_TYPE,
-    # field47: FIELD_TYPE,
-    # field48: FIELD_TYPE,
-    # field49: FIELD_TYPE,
-    # field50: FIELD_TYPE,
+    field36: FIELD_TYPE,
+    field37: FIELD_TYPE,
+    field38: FIELD_TYPE,
+    field39: FIELD_TYPE,
+    field40: FIELD_TYPE,
+    field41: FIELD_TYPE,
+    field42: FIELD_TYPE,
+    field43: FIELD_TYPE,
+    field44: FIELD_TYPE,
+    field45: FIELD_TYPE,
+    field46: FIELD_TYPE,
+    field47: FIELD_TYPE,
+    field48: FIELD_TYPE,
+    field49: FIELD_TYPE,
+    field50: FIELD_TYPE,
     # field51: FIELD_TYPE,
     # field52: FIELD_TYPE,
     # field53: FIELD_TYPE,
@@ -450,21 +450,21 @@ def test_taugb03(
         field33[0,0,0]= 2
         field34[0,0,0]= 2
         field35[0,0,0]= 2
-        # field36[0,0,0]= 2
-        # field37[0,0,0]= 2
-        # field38[0,0,0]= 2
-        # field39[0,0,0]= 2
-        # field40[0,0,0]= 2
-        # field41[0,0,0]= 2
-        # field42[0,0,0]= 2
-        # field43[0,0,0]= 2
-        # field44[0,0,0]= 2
-        # field45[0,0,0]= 2
-        # field46[0,0,0]= 2
-        # field47[0,0,0]= 2
-        # field48[0,0,0]= 2
-        # field49[0,0,0]= 2
-        # field50[0,0,0]= 2
+        field36[0,0,0]= 2
+        field37[0,0,0]= 2
+        field38[0,0,0]= 2
+        field39[0,0,0]= 2
+        field40[0,0,0]= 2
+        field41[0,0,0]= 2
+        field42[0,0,0]= 2
+        field43[0,0,0]= 2
+        field44[0,0,0]= 2
+        field45[0,0,0]= 2
+        field46[0,0,0]= 2
+        field47[0,0,0]= 2
+        field48[0,0,0]= 2
+        field49[0,0,0]= 2
+        field50[0,0,0]= 2
         # field51[0,0,0]= 2
         # field52[0,0,0]= 2
         # field53[0,0,0]= 2
@@ -520,22 +520,22 @@ def test_taugb03(
             + field32[0,0,0] \
             + field33[0,0,0] \
             + field34[0,0,0] \
-            + field35[0,0,0] #\
-            # + field36[0,0,0] \
-            # + field37[0,0,0] \
-            # + field38[0,0,0] \
-            # + field39[0,0,0] \
-            # + field40[0,0,0] \
-            # + field41[0,0,0] \
-            # + field42[0,0,0] \
-            # + field43[0,0,0] \
-            # + field44[0,0,0] \
-            # + field45[0,0,0] \
-            # + field46[0,0,0] \
-            # + field47[0,0,0] \
-            # + field48[0,0,0] \
-            # + field49[0,0,0] \
-            # + field50[0,0,0] \
+            + field35[0,0,0] \
+            + field36[0,0,0] \
+            + field37[0,0,0] \
+            + field38[0,0,0] \
+            + field39[0,0,0] \
+            + field40[0,0,0] \
+            + field41[0,0,0] \
+            + field42[0,0,0] \
+            + field43[0,0,0] \
+            + field44[0,0,0] \
+            + field45[0,0,0] \
+            + field46[0,0,0] \
+            + field47[0,0,0] \
+            + field48[0,0,0] \
+            + field49[0,0,0] \
+            + field50[0,0,0] #\
             # + field51[0,0,0] \
             # + field52[0,0,0] \
             # + field53[0,0,0] \
