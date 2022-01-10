@@ -391,7 +391,7 @@ def test_taugb03(
     field45: FIELD_TYPE,
     field46: FIELD_TYPE,
     field47: FIELD_TYPE,
-    # field48: FIELD_TYPE,
+    field48: FIELD_TYPE,
     # field49: FIELD_TYPE,
     # field50: FIELD_TYPE,
     # field51: FIELD_TYPE,
@@ -462,7 +462,7 @@ def test_taugb03(
         field45[0,0,0]= 2
         field46[0,0,0]= 2
         field47[0,0,0]= 2
-        # field48[0,0,0]= 2
+        field48[0,0,0]= 2
         # field49[0,0,0]= 2
         # field50[0,0,0]= 2
         # field51[0,0,0]= 2
@@ -533,7 +533,7 @@ def test_taugb03(
             + field45[0,0,0] \
             + field46[0,0,0] \
             + field47[0,0,0] \
-            # + field48[0,0,0] \
+            + field48[0,0,0] \
             # + field49[0,0,0] \
             # + field50[0,0,0] \
             # + field51[0,0,0] \
