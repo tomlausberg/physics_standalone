@@ -234,7 +234,7 @@ if (test_normal):
         field46,
         field47,
         field48,
-        # field49,
+        field49,
         # field50,
         # field51,
         # field52,
