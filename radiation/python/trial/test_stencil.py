@@ -393,26 +393,26 @@ def test_taugb03(
     field47: FIELD_TYPE,
     field48: FIELD_TYPE,
     field49: FIELD_TYPE,
-    # field50: FIELD_TYPE,
-    # field51: FIELD_TYPE,
-    # field52: FIELD_TYPE,
-    # field53: FIELD_TYPE,
-    # field54: FIELD_TYPE,
-    # field55: FIELD_TYPE,
-    # field56: FIELD_TYPE,
-    # field57: FIELD_TYPE,
-    # field58: FIELD_TYPE,
-    # field59: FIELD_TYPE,
-    # field60: FIELD_TYPE,
-    # field61: FIELD_TYPE,
-    # field62: FIELD_TYPE,
-    # field63: FIELD_TYPE,
-    # field64: FIELD_TYPE,
-    # field65: FIELD_TYPE,
-    # field66: FIELD_TYPE,
-    # field67: FIELD_TYPE,
-    # field68: FIELD_TYPE,
-    # field69: FIELD_TYPE
+    field50: FIELD_TYPE,
+    field51: FIELD_TYPE,
+    field52: FIELD_TYPE,
+    field53: FIELD_TYPE,
+    field54: FIELD_TYPE,
+    field55: FIELD_TYPE,
+    field56: FIELD_TYPE,
+    field57: FIELD_TYPE,
+    field58: FIELD_TYPE,
+    field59: FIELD_TYPE,
+    field60: FIELD_TYPE,
+    field61: FIELD_TYPE,
+    field62: FIELD_TYPE,
+    field63: FIELD_TYPE,
+    field64: FIELD_TYPE,
+    field65: FIELD_TYPE,
+    field66: FIELD_TYPE,
+    field67: FIELD_TYPE,
+    field68: FIELD_TYPE,
+    field69: FIELD_TYPE
 ):
     with computation(FORWARD), interval(1,None):
         field01[0,0,0]= 2
@@ -464,26 +464,26 @@ def test_taugb03(
         field47[0,0,0]= 2
         field48[0,0,0]= 2
         field49[0,0,0]= 2
-        # field50[0,0,0]= 2
-        # field51[0,0,0]= 2
-        # field52[0,0,0]= 2
-        # field53[0,0,0]= 2
-        # field54[0,0,0]= 2
-        # field55[0,0,0]= 2
-        # field56[0,0,0]= 2
-        # field57[0,0,0]= 2
-        # field58[0,0,0]= 2
-        # field59[0,0,0]= 2
-        # field60[0,0,0]= 2
-        # field61[0,0,0]= 2
-        # field62[0,0,0]= 2
-        # field63[0,0,0]= 2
-        # field64[0,0,0]= 2
-        # field65[0,0,0]= 2
-        # field66[0,0,0]= 2
-        # field67[0,0,0]= 2
-        # field68[0,0,0]= 2
-        # field69[0,0,0]= 2
+        field50[0,0,0]= 2
+        field51[0,0,0]= 2
+        field52[0,0,0]= 2
+        field53[0,0,0]= 2
+        field54[0,0,0]= 2
+        field55[0,0,0]= 2
+        field56[0,0,0]= 2
+        field57[0,0,0]= 2
+        field58[0,0,0]= 2
+        field59[0,0,0]= 2
+        field60[0,0,0]= 2
+        field61[0,0,0]= 2
+        field62[0,0,0]= 2
+        field63[0,0,0]= 2
+        field64[0,0,0]= 2
+        field65[0,0,0]= 2
+        field66[0,0,0]= 2
+        field67[0,0,0]= 2
+        field68[0,0,0]= 2
+        field69[0,0,0]= 2
     
     with computation(FORWARD), interval(1,None):
         ret_field[0,0,0] = field01[0,0,0] \
@@ -535,26 +535,26 @@ def test_taugb03(
             + field47[0,0,0] \
             + field48[0,0,0] \
             + field49[0,0,0] \
-            # + field50[0,0,0] \
-            # + field51[0,0,0] \
-            # + field52[0,0,0] \
-            # + field53[0,0,0] \
-            # + field54[0,0,0] \
-            # + field55[0,0,0] \
-            # + field56[0,0,0] \
-            # + field57[0,0,0] \
-            # + field58[0,0,0] \
-            # + field59[0,0,0] \
-            # + field60[0,0,0] \
-            # + field61[0,0,0] \
-            # + field62[0,0,0] \
-            # + field63[0,0,0] \
-            # + field64[0,0,0] \
-            # + field65[0,0,0] \
-            # + field66[0,0,0] \
-            # + field67[0,0,0] \
-            # + field68[0,0,0] \
-            # + field69[0,0,0] \
+            + field50[0,0,0] \
+            + field51[0,0,0] \
+            + field52[0,0,0] \
+            + field53[0,0,0] \
+            + field54[0,0,0] \
+            + field55[0,0,0] \
+            + field56[0,0,0] \
+            + field57[0,0,0] \
+            + field58[0,0,0] \
+            + field59[0,0,0] \
+            + field60[0,0,0] \
+            + field61[0,0,0] \
+            + field62[0,0,0] \
+            + field63[0,0,0] \
+            + field64[0,0,0] \
+            + field65[0,0,0] \
+            + field66[0,0,0] \
+            + field67[0,0,0] \
+            + field68[0,0,0] \
+            + field69[0,0,0] 
 
 # Field Normal
 # 50
