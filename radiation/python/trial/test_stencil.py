@@ -341,7 +341,6 @@ def test_multidim_32x(
                 + field31[0,0,0][band] \
                 + field32[0,0,0][band]
 
-
 @stencil(backend=backend)
 def test_taugb03(
     ret_field: FIELD_TYPE,
