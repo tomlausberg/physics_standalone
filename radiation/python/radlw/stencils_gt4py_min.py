@@ -1046,6 +1046,8 @@ def taubg03a(
     specparm1: FIELD_FLT,
     taumajor1: Field[type_ngptlw],
 ):
+    from __externals__ import nspa, nspb, ng03, ns03, oneminus
+    
     with computation(PARALLEL), interval(1, None):
         if laytrop:
             speccomb1 = colamt[0, 0, 0][0] + rfrate[0, 0, 0][0, 1] * colamt[0, 0, 0][1]
@@ -1145,7 +1147,6 @@ def taubg03a(
         "oneminus": oneminus,
     },
 )
-
 def taubg03b(
     laytrop: FIELD_BOOL,
     coldry: FIELD_FLT,
