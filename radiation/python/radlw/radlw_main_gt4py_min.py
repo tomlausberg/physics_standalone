@@ -27,7 +27,7 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py_min import firstloop, taubg03a, taubg03b, validate, rebuild, setcoef, taugb01, taugb02
+from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_abs, validate, rebuild, setcoef, taugb01, taugb02
 
 import serialbox as ser
 
@@ -736,7 +736,7 @@ class RadLWClass:
         timings["firstloop"] = exec_info["run_end_time"] - exec_info["run_start_time"]
 
         self._load_random_numbers(rank)
-
+        fac = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT,(4,)))
         setcoef(
             self.locdict_gt4py["pavel"],
             self.locdict_gt4py["tavel"],
@@ -759,6 +759,7 @@ class RadLWClass:
             self.locdict_gt4py["jt"],
             self.locdict_gt4py["jt1"],
             self.locdict_gt4py["rfrate"],
+            fac,
             self.locdict_gt4py["fac00"],
             self.locdict_gt4py["fac01"],
             self.locdict_gt4py["fac10"],
@@ -973,6 +974,28 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-
+        abc = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
+        abc1 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
+        taugb04_abs(
+            abc,
+            abc1,
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["rfrate"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.lookupdict_gt4py4["absa"],
+            self.locdict_gt4py["ind0"],
+            self.locdict_gt4py["ind1"],
+            self.locdict_gt4py["js"],
+            self.locdict_gt4py["js1"],
+            self.locdict_gt4py["specparm"],
+            self.locdict_gt4py["specparm1"],
+        )
         return timings
 
