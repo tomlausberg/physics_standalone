@@ -1434,9 +1434,8 @@ def taubg03b(
         "oneminus": oneminus,
     },
 )
-def taugb04_abs(
-    abc: Field[(DTYPE_FLT, (ng04,))],
-    abc1: Field[(DTYPE_FLT, (ng04,))],
+def taugb04_tau_major(
+    tau_major: Field[(DTYPE_FLT, (ng04,))],
     laytrop: FIELD_BOOL,
     colamt: Field[type_maxgas],
     rfrate: Field[(DTYPE_FLT, (nrates, 2))],
@@ -1448,6 +1447,7 @@ def taugb04_abs(
     jt: FIELD_INT,
     jt1: FIELD_INT,
     absa: Field[(DTYPE_FLT, (ng04, 585))],
+    absb: Field[(DTYPE_FLT, (ng03, 1175))],
     ind0: FIELD_INT,
     ind1: FIELD_INT,
     js: FIELD_INT,
@@ -1570,19 +1570,21 @@ def taugb04_abs(
             fac211 = fk2 * fac11
 
             for ig in range(ng04):
-                abc[0,0,0][ig] = fac000* absa[0, 0, 0][ig, id000] \
-                    + fac010 * absa[0, 0, 0][ig, id010] \
-                    + fac100 * absa[0, 0, 0][ig, id100] \
-                    + fac110 * absa[0, 0, 0][ig, id110] \
-                    + fac200 * absa[0, 0, 0][ig, id200] \
+                tau_major[0,0,0][ig] = speccomb * (
+                    fac000 * absa[0, 0, 0][ig, id000]
+                    + fac010 * absa[0, 0, 0][ig, id010]
+                    + fac100 * absa[0, 0, 0][ig, id100]
+                    + fac110 * absa[0, 0, 0][ig, id110]
+                    + fac200 * absa[0, 0, 0][ig, id200]
                     + fac210 * absa[0, 0, 0][ig, id210]
-
-                abc1[0,0,0][ig] = fac001 * absa[0, 0, 0][ig, id001] \
-                    + fac011 * absa[0, 0, 0][ig, id011] \
-                    + fac101 * absa[0, 0, 0][ig, id101] \
-                    + fac111 * absa[0, 0, 0][ig, id111] \
-                    + fac201 * absa[0, 0, 0][ig, id201] \
+                ) + speccomb1 * (
+                    fac001 * absa[0, 0, 0][ig, id001]
+                    + fac011 * absa[0, 0, 0][ig, id011]
+                    + fac101 * absa[0, 0, 0][ig, id101]
+                    + fac111 * absa[0, 0, 0][ig, id111]
+                    + fac201 * absa[0, 0, 0][ig, id201]
                     + fac211 * absa[0, 0, 0][ig, id211]
+                )
         
         else:
             speccomb = colamt[0, 0, 0][2] + rfrate[0, 0, 0][5, 0] * colamt[0, 0, 0][1]
@@ -1628,8 +1630,7 @@ def taugb04_abs(
                     + fac010 * absb[0, 0, 0][ig2, id010]
                     + fac100 * absb[0, 0, 0][ig2, id100]
                     + fac110 * absb[0, 0, 0][ig2, id110]
-                )
-                tau_major1 = speccomb1 * (
+                ) + speccomb1 * (
                     fac001 * absb[0, 0, 0][ig2, id001]
                     + fac011 * absb[0, 0, 0][ig2, id011]
                     + fac101 * absb[0, 0, 0][ig2, id101]
@@ -1637,18 +1638,9 @@ def taugb04_abs(
                 )
 
 def taugb04b(
-    abc: Field[(DTYPE_FLT, (ng04,))],
-    abc1: Field[(DTYPE_FLT, (ng04,))],
+    tau_major: Field[(DTYPE_FLT, (ng04,))],
     laytrop: FIELD_BOOL,
     colamt: Field[type_maxgas],
-    rfrate: Field[(DTYPE_FLT, (nrates, 2))],
-    fac00: FIELD_FLT,
-    fac01: FIELD_FLT,
-    fac10: FIELD_FLT,
-    fac11: FIELD_FLT,
-    jp: FIELD_INT,
-    jt: FIELD_INT,
-    jt1: FIELD_INT,
     selffac: FIELD_FLT,
     selffrac: FIELD_FLT,
     indself: FIELD_INT,
@@ -1657,89 +1649,19 @@ def taugb04b(
     indfor: FIELD_INT,
     fracs: Field[type_ngptlw],
     taug: Field[type_ngptlw],
-    absa: Field[(DTYPE_FLT, (ng04, 585))],
-    absb: Field[(DTYPE_FLT, (ng04, 1175))],
     selfref: Field[(DTYPE_FLT, (ng04, 10))],
     forref: Field[(DTYPE_FLT, (ng04, 4))],
     fracrefa: Field[(DTYPE_FLT, (ng04, 9))],
     fracrefb: Field[(DTYPE_FLT, (ng04, 5))],
     chi_mls: Field[(DTYPE_FLT, (7, 59))],
-    ind0: FIELD_INT,
-    ind1: FIELD_INT,
-    inds: FIELD_INT,
-    indsp: FIELD_INT,
-    indf: FIELD_INT,
-    indfp: FIELD_INT,
-    tauself: FIELD_FLT,
-    taufor: FIELD_FLT,laytrop: FIELD_BOOL,
-    colamt: Field[type_maxgas],
-    rfrate: Field[(DTYPE_FLT, (nrates, 2))],
-    fac00: FIELD_FLT,
-    fac01: FIELD_FLT,
-    fac10: FIELD_FLT,
-    fac11: FIELD_FLT,
-    jp: FIELD_INT,
-    jt: FIELD_INT,
-    jt1: FIELD_INT,
-    selffac: FIELD_FLT,
-    selffrac: FIELD_FLT,
-    indself: FIELD_INT,
-    forfac: FIELD_FLT,
-    forfrac: FIELD_FLT,
-    indfor: FIELD_INT,
-    fracs: Field[type_ngptlw],
-    taug: Field[type_ngptlw],
-    absa: Field[(DTYPE_FLT, (ng04, 585))],
-    absb: Field[(DTYPE_FLT, (ng04, 1175))],
-    selfref: Field[(DTYPE_FLT, (ng04, 10))],
-    forref: Field[(DTYPE_FLT, (ng04, 4))],
-    fracrefa: Field[(DTYPE_FLT, (ng04, 9))],
-    fracrefb: Field[(DTYPE_FLT, (ng04, 5))],
-    chi_mls: Field[(DTYPE_FLT, (7, 59))],
-    ind0: FIELD_INT,
-    ind1: FIELD_INT,
     inds: FIELD_INT,
     indsp: FIELD_INT,
     indf: FIELD_INT,
     indfp: FIELD_INT,
     tauself: FIELD_FLT,
     taufor: FIELD_FLT,
-    js: FIELD_INT,
-    js1: FIELD_INT,
     jpl: FIELD_INT,
     jplp: FIELD_INT,
-    id000: FIELD_INT,
-    id010: FIELD_INT,
-    id100: FIELD_INT,
-    id110: FIELD_INT,
-    id200: FIELD_INT,
-    id210: FIELD_INT,
-    id001: FIELD_INT,
-    id011: FIELD_INT,
-    id101: FIELD_INT,
-    id111: FIELD_INT,
-    id201: FIELD_INT,
-    id211: FIELD_INT,
-    specparm: FIELD_FLT,
-    specparm1: FIELD_FLT,
-    js: FIELD_INT,
-    js1: FIELD_INT,
-    jpl: FIELD_INT,
-    jplp: FIELD_INT,
-    id000: FIELD_INT,
-    id010: FIELD_INT,
-    id100: FIELD_INT,
-    id110: FIELD_INT,
-    id200: FIELD_INT,
-    id210: FIELD_INT,
-    id001: FIELD_INT,
-    id011: FIELD_INT,
-    id101: FIELD_INT,
-    id111: FIELD_INT,
-    id201: FIELD_INT,
-    id211: FIELD_INT,
-    specparm: FIELD_FLT,
-    specparm1: FIELD_FLT,
 ):
     from __externals__ import nspa, nspb, ng04, ns04, oneminus
 
@@ -1756,20 +1678,6 @@ def taugb04b(
         refrat_planck_a = refrat_planck_a
         refrat_planck_b = refrat_planck_b
         if laytrop:
-            speccomb = colamt[0, 0, 0][0] + rfrate[0, 0, 0][0, 0] * colamt[0, 0, 0][1]
-            specparm = colamt[0, 0, 0][0] / speccomb
-            specmult = 8.0 * min(specparm, oneminus)
-            js = 1 + specmult
-            fs = mod(specmult, 1.0)
-            ind0 = ((jp - 1) * 5 + (jt - 1)) * nspa + js - 1
-
-            speccomb1 = colamt[0, 0, 0][0] + rfrate[0, 0, 0][0, 1] * colamt[0, 0, 0][1]
-            specparm1 = colamt[0, 0, 0][0] / speccomb1
-            specmult1 = 8.0 * min(specparm1, oneminus)
-            js1 = 1 + specmult1
-            fs1 = mod(specmult1, 1.0)
-            ind1 = (jp * 5 + (jt1 - 1)) * nspa + js1 - 1
-
             speccomb_planck = colamt[0, 0, 0][0] + refrat_planck_a * colamt[0, 0, 0][1]
             specparm_planck = colamt[0, 0, 0][0] / speccomb_planck
             specmult_planck = 8.0 * min(specparm_planck, oneminus)
@@ -1782,105 +1690,6 @@ def taugb04b(
             indfp = indf + 1
             jplp = jpl + 1
 
-            # Workaround for bug in gt4py, can be removed at release of next tag (>32)
-            id000 = id000
-            id010 = id010
-            id100 = id100
-            id110 = id110
-            id200 = id200
-            id210 = id210
-
-            if specparm < 0.125:
-                p = fs - 1.0
-                p4 = p ** 4
-                fk0 = p4
-                fk1 = 1.0 - p - 2.0 * p4
-                fk2 = p + p4
-                id000 = ind0
-                id010 = ind0 + 9
-                id100 = ind0 + 1
-                id110 = ind0 + 10
-                id200 = ind0 + 2
-                id210 = ind0 + 11
-            elif specparm > 0.875:
-                p = -fs
-                p4 = p ** 4
-                fk0 = p4
-                fk1 = 1.0 - p - 2.0 * p4
-                fk2 = p + p4
-                id000 = ind0 + 1
-                id010 = ind0 + 10
-                id100 = ind0
-                id110 = ind0 + 9
-                id200 = ind0 - 1
-                id210 = ind0 + 8
-            else:
-                fk0 = 1.0 - fs
-                fk1 = fs
-                fk2 = 0.0
-                id000 = ind0
-                id010 = ind0 + 9
-                id100 = ind0 + 1
-                id110 = ind0 + 10
-                id200 = ind0
-                id210 = ind0
-
-            fac000 = fk0 * fac00
-            fac100 = fk1 * fac00
-            fac200 = fk2 * fac00
-            fac010 = fk0 * fac10
-            fac110 = fk1 * fac10
-            fac210 = fk2 * fac10
-
-            id001 = id001
-            id011 = id011
-            id101 = id101
-            id111 = id111
-            id201 = id201
-            id211 = id211
-
-            if specparm1 < 0.125:
-                p = fs1 - 1.0
-                p4 = p ** 4
-                fk0 = p4
-                fk1 = 1.0 - p - 2.0 * p4
-                fk2 = p + p4
-                id001 = ind1
-                id011 = ind1 + 9
-                id101 = ind1 + 1
-                id111 = ind1 + 10
-                id201 = ind1 + 2
-                id211 = ind1 + 11
-            elif specparm1 > 0.875:
-                p = -fs1
-                p4 = p ** 4
-                fk0 = p4
-                fk1 = 1.0 - p - 2.0 * p4
-                fk2 = p + p4
-                id001 = ind1 + 1
-                id011 = ind1 + 10
-                id101 = ind1
-                id111 = ind1 + 9
-                id201 = ind1 - 1
-                id211 = ind1 + 8
-            else:
-                fk0 = 1.0 - fs1
-                fk1 = fs1
-                fk2 = 0.0
-                id001 = ind1
-                id011 = ind1 + 9
-                id101 = ind1 + 1
-                id111 = ind1 + 10
-                id201 = ind1
-                id211 = ind1
-
-            fac001 = fk0 * fac01
-            fac101 = fk1 * fac01
-            fac201 = fk2 * fac01
-            fac011 = fk0 * fac11
-            fac111 = fk1 * fac11
-            fac211 = fk2 * fac11
-
             for ig in range(ng04):
                 tauself = selffac * (
                     selfref[0, 0, 0][ig, inds]
@@ -1892,44 +1701,13 @@ def taugb04b(
                     + forfrac * (forref[0, 0, 0][ig, indfp] - forref[0, 0, 0][ig, indf])
                 )
 
-                tau_major = speccomb * (
-                    fac000 * absa[0, 0, 0][ig, id000]
-                    + fac010 * absa[0, 0, 0][ig, id010]
-                    + fac100 * absa[0, 0, 0][ig, id100]
-                    + fac110 * absa[0, 0, 0][ig, id110]
-                    + fac200 * absa[0, 0, 0][ig, id200]
-                    + fac210 * absa[0, 0, 0][ig, id210]
-                )
-
-                tau_major1 = speccomb1 * (
-                    fac001 * absa[0, 0, 0][ig, id001]
-                    + fac011 * absa[0, 0, 0][ig, id011]
-                    + fac101 * absa[0, 0, 0][ig, id101]
-                    + fac111 * absa[0, 0, 0][ig, id111]
-                    + fac201 * absa[0, 0, 0][ig, id201]
-                    + fac211 * absa[0, 0, 0][ig, id211]
-                )
-
-                taug[0, 0, 0][ns04 + ig] = tau_major + tau_major1 + tauself + taufor
+                taug[0, 0, 0][ns04 + ig] = tau_major + tauself + taufor
 
                 fracs[0, 0, 0][ns04 + ig] = fracrefa[0, 0, 0][ig, jpl] + fpl * (
                     fracrefa[0, 0, 0][ig, jplp] - fracrefa[0, 0, 0][ig, jpl]
                 )
 
         else:
-            speccomb = colamt[0, 0, 0][2] + rfrate[0, 0, 0][5, 0] * colamt[0, 0, 0][1]
-            specparm = colamt[0, 0, 0][2] / speccomb
-            specmult = 4.0 * min(specparm, oneminus)
-            js = 1 + specmult
-            fs = mod(specmult, 1.0)
-            ind0 = ((jp - 13) * 5 + (jt - 1)) * nspb + js - 1
-
-            speccomb1 = colamt[0, 0, 0][2] + rfrate[0, 0, 0][5, 1] * colamt[0, 0, 0][1]
-            specparm1 = colamt[0, 0, 0][2] / speccomb1
-            specmult1 = 4.0 * min(specparm1, oneminus)
-            js1 = 1 + specmult1
-            fs1 = mod(specmult1, 1.0)
-            ind1 = ((jp - 12) * 5 + (jt1 - 1)) * nspb + js1 - 1
 
             speccomb_planck = colamt[0, 0, 0][2] + refrat_planck_b * colamt[0, 0, 0][1]
             specparm_planck = colamt[0, 0, 0][2] / speccomb_planck
@@ -1938,44 +1716,9 @@ def taugb04b(
             fpl = mod(specmult_planck, 1.0)
             jplp = jpl + 1
 
-            id000 = ind0
-            id010 = ind0 + 5
-            id100 = ind0 + 1
-            id110 = ind0 + 6
-            id001 = ind1
-            id011 = ind1 + 5
-            id101 = ind1 + 1
-            id111 = ind1 + 6
-
-            fk0 = 1.0 - fs
-            fk1 = fs
-            fac000 = fk0 * fac00
-            fac010 = fk0 * fac10
-            fac100 = fk1 * fac00
-            fac110 = fk1 * fac10
-
-            fk0 = 1.0 - fs1
-            fk1 = fs1
-            fac001 = fk0 * fac01
-            fac011 = fk0 * fac11
-            fac101 = fk1 * fac01
-            fac111 = fk1 * fac11
-
             for ig2 in range(ng04):
-                tau_major = speccomb * (
-                    fac000 * absb[0, 0, 0][ig2, id000]
-                    + fac010 * absb[0, 0, 0][ig2, id010]
-                    + fac100 * absb[0, 0, 0][ig2, id100]
-                    + fac110 * absb[0, 0, 0][ig2, id110]
-                )
-                tau_major1 = speccomb1 * (
-                    fac001 * absb[0, 0, 0][ig2, id001]
-                    + fac011 * absb[0, 0, 0][ig2, id011]
-                    + fac101 * absb[0, 0, 0][ig2, id101]
-                    + fac111 * absb[0, 0, 0][ig2, id111]
-                )
 
-                taug[0, 0, 0][ns04 + ig2] = tau_major + tau_major1
+                taug[0, 0, 0][ns04 + ig2] = tau_major
 
                 fracs[0, 0, 0][ns04 + ig2] = fracrefb[0, 0, 0][ig2, jpl] + fpl * (
                     fracrefb[0, 0, 0][ig2, jplp] - fracrefb[0, 0, 0][ig2, jpl]

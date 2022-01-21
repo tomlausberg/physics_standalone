@@ -27,7 +27,7 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_abs, validate, rebuild, setcoef, taugb01, taugb02
+from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_abs, taugb04_tau_major, taugb04b, validate, rebuild, setcoef, taugb01, taugb02
 
 import serialbox as ser
 
@@ -974,11 +974,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        abc = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
-        abc1 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
-        taugb04_abs(
-            abc,
-            abc1,
+        
+        tau_major = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
+
+        taugb04_tau_major(
+            tau_major,
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["rfrate"],
@@ -990,6 +990,7 @@ class RadLWClass:
             self.locdict_gt4py["jt"],
             self.locdict_gt4py["jt1"],
             self.lookupdict_gt4py4["absa"],
+            self.lookupdict_gt4py4["absb"],
             self.locdict_gt4py["ind0"],
             self.locdict_gt4py["ind1"],
             self.locdict_gt4py["js"],
@@ -1011,6 +1012,41 @@ class RadLWClass:
             domain=shape_nlp1,
             origin=default_origin,
             validate_args=validate,
+            exec_info=exec_info
         )
+
+        taugb04b(
+            tau_major,
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["fracs"],
+            self.locdict_gt4py["taug"],
+            self.lookupdict_gt4py4["selfref"],
+            self.lookupdict_gt4py4["forref"],
+            self.lookupdict_gt4py4["fracrefa"],
+            self.lookupdict_gt4py4["fracrefb"],
+            self.lookupdict_gt4py4["chi_mls"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            self.locdict_gt4py["tauself"],
+            self.locdict_gt4py["taufor"],
+            self.locdict_gt4py["jpl"],
+            self.locdict_gt4py["jplp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info
+
+        )
+
         return timings
 
+absb: Field[(DTYPE_FLT, (ng04, 585))],
