@@ -994,8 +994,23 @@ class RadLWClass:
             self.locdict_gt4py["ind1"],
             self.locdict_gt4py["js"],
             self.locdict_gt4py["js1"],
+            self.locdict_gt4py["id000"],
+            self.locdict_gt4py["id010"],
+            self.locdict_gt4py["id100"],
+            self.locdict_gt4py["id110"],
+            self.locdict_gt4py["id200"],
+            self.locdict_gt4py["id210"],
+            self.locdict_gt4py["id001"],
+            self.locdict_gt4py["id011"],
+            self.locdict_gt4py["id101"],
+            self.locdict_gt4py["id111"],
+            self.locdict_gt4py["id201"],
+            self.locdict_gt4py["id211"],
             self.locdict_gt4py["specparm"],
             self.locdict_gt4py["specparm1"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
         )
         return timings
 
