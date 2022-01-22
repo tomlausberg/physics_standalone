@@ -27,7 +27,7 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_abs, taugb04_tau_major, taugb04b, validate, rebuild, setcoef, taugb01, taugb02
+from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_tau_major, taugb04b, validate, rebuild, setcoef, taugb01, taugb02
 
 import serialbox as ser
 
@@ -1044,9 +1044,86 @@ class RadLWClass:
             origin=default_origin,
             validate_args=validate,
             exec_info=exec_info
+        )
+        
+        tau_major5 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng05,)))
 
+        taugb05a(
+            tau_major5,
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["rfrate"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.lookupdict_gt4py5["absa"],
+            self.lookupdict_gt4py5["absb"],
+            self.locdict_gt4py["ind0"],
+            self.locdict_gt4py["ind1"],
+            self.locdict_gt4py["js"],
+            self.locdict_gt4py["js1"],
+            self.locdict_gt4py["id000"],
+            self.locdict_gt4py["id010"],
+            self.locdict_gt4py["id100"],
+            self.locdict_gt4py["id110"],
+            self.locdict_gt4py["id200"],
+            self.locdict_gt4py["id210"],
+            self.locdict_gt4py["id001"],
+            self.locdict_gt4py["id011"],
+            self.locdict_gt4py["id101"],
+            self.locdict_gt4py["id111"],
+            self.locdict_gt4py["id201"],
+            self.locdict_gt4py["id211"],
+            self.locdict_gt4py["specparm"],
+            self.locdict_gt4py["specparm1"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info,
+        )
+
+        taugb05b(
+            tau_major5
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["wx"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["minorfrac"],
+            self.locdict_gt4py["indminor"],
+            self.locdict_gt4py["fracs"],
+            self.locdict_gt4py["taug"],
+            self.lookupdict_gt4py5["selfref"],
+            self.lookupdict_gt4py5["forref"],
+            self.lookupdict_gt4py5["fracrefa"],
+            self.lookupdict_gt4py5["fracrefb"],
+            self.lookupdict_gt4py5["ka_mo3"],
+            self.lookupdict_gt4py5["ccl4"],
+            self.lookupdict_gt4py5["chi_mls"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            self.locdict_gt4py["indm"],
+            self.locdict_gt4py["indmp"],
+            self.locdict_gt4py["tauself"],
+            self.locdict_gt4py["taufor"],
+            self.locdict_gt4py["jpl"],
+            self.locdict_gt4py["jplp"],
+            self.locdict_gt4py["jmo3"],
+            self.locdict_gt4py["jmo3p"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info,
         )
 
         return timings
-
-absb: Field[(DTYPE_FLT, (ng04, 585))],
