@@ -27,7 +27,19 @@ from util import (
     convert_gt4py_output_for_validation,
 )
 from config import *
-from stencils_gt4py_min import firstloop, taubg03a, taubg03b, taugb04_tau_major, taugb04b, validate, rebuild, setcoef, taugb01, taugb02
+from stencils_gt4py_min import (
+    firstloop,
+    setcoef,
+    taugb01, 
+    taugb02,
+    taubg03a, 
+    taubg03b,
+    taugb04_tau_major, 
+    taugb04b, validate,
+    taugb05a,
+    taugb05b,
+    rebuild,  
+)
 
 import serialbox as ser
 
