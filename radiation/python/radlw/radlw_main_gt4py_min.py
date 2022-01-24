@@ -28,7 +28,7 @@ from util import (
 )
 from config import *
 
-from stencils_gt4py import (
+from python.radlw.stencils_gt4py_split import (
     rebuild,
     validate,
     firstloop,
@@ -42,9 +42,7 @@ from stencils_gt4py import (
     taugb11,
     taugb12,
     taugb14,
-    combine_optical_depth
-)
-from python.radlw.stencils_gt4py_split import (
+    combine_optical_depth,
     taubg03a, 
     taubg03b,
     taugb04a, 
