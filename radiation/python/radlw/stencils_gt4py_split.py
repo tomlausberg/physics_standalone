@@ -1383,7 +1383,6 @@ def taugb03b(
                     fracrefb[0, 0, 0][ig2, jplp] - fracrefb[0, 0, 0][ig2, jpl]
                 )
 
-"""
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -3120,7 +3119,6 @@ def taugb11(
 
                 fracs[0, 0, 0][ns11 + ig2] = fracrefb[0, 0, 0][ig2]
 
-
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -3132,7 +3130,8 @@ def taugb11(
         "oneminus": oneminus,
     },
 )
-def taugb12(
+def taugb12a(
+    tau_major: Field[(DTYPE_FLT, (ng12,))],
     laytrop: FIELD_BOOL,
     colamt: Field[type_maxgas],
     rfrate: Field[(DTYPE_FLT, (nrates, 2))],
@@ -3143,31 +3142,11 @@ def taugb12(
     jp: FIELD_INT,
     jt: FIELD_INT,
     jt1: FIELD_INT,
-    selffac: FIELD_FLT,
-    selffrac: FIELD_FLT,
-    indself: FIELD_INT,
-    forfac: FIELD_FLT,
-    forfrac: FIELD_FLT,
-    indfor: FIELD_INT,
-    fracs: Field[type_ngptlw],
-    taug: Field[type_ngptlw],
     absa: Field[(DTYPE_FLT, (ng09, 585))],
-    selfref: Field[(DTYPE_FLT, (ng09, 10))],
-    forref: Field[(DTYPE_FLT, (ng09, 4))],
-    fracrefa: Field[(DTYPE_FLT, (ng09, 9))],
-    chi_mls: Field[(DTYPE_FLT, (7, 59))],
     ind0: FIELD_INT,
     ind1: FIELD_INT,
-    inds: FIELD_INT,
-    indsp: FIELD_INT,
-    indf: FIELD_INT,
-    indfp: FIELD_INT,
-    tauself: FIELD_FLT,
-    taufor: FIELD_FLT,
     js: FIELD_INT,
     js1: FIELD_INT,
-    jpl: FIELD_INT,
-    jplp: FIELD_INT,
     id000: FIELD_INT,
     id010: FIELD_INT,
     id100: FIELD_INT,
@@ -3182,13 +3161,8 @@ def taugb12(
     id211: FIELD_INT,
     specparm: FIELD_FLT,
     specparm1: FIELD_FLT,
-    specparm_planck: FIELD_FLT,
 ):
     from __externals__ import nspa, ng12, ns12, oneminus
-
-    with computation(PARALLEL):
-        with interval(...):
-            refrat_planck_a = chi_mls[0, 0, 0][0, 9] / chi_mls[0, 0, 0][1, 9]
 
     with computation(PARALLEL), interval(1, None):
         if laytrop:
@@ -3206,137 +3180,12 @@ def taugb12(
             fs1 = mod(specmult1, 1.0)
             ind1 = (jp * 5 + (jt1 - 1)) * nspa + js1 - 1
 
-            speccomb_planck = colamt[0, 0, 0][0] + refrat_planck_a * colamt[0, 0, 0][1]
-            specparm_planck = colamt[0, 0, 0][0] / speccomb_planck
-            if specparm_planck >= oneminus:
-                specparm_planck = oneminus
-            specmult_planck = 8.0 * specparm_planck
-            jpl = 1 + specmult_planck - 1
-            fpl = mod(specmult_planck, 1.0)
-
-            inds = indself - 1
-            indf = indfor - 1
-            indsp = inds + 1
-            indfp = indf + 1
-            jplp = jpl + 1
-
-            # Workaround for bug in gt4py, can be removed at release of next tag (>32)
-            id000 = id000
-            id010 = id010
-            id100 = id100
-            id110 = id110
-            id200 = id200
-            id210 = id210
-
-            if specparm < 0.125:
-                p0 = fs - 1.0
-                p40 = p0 ** 4
-                fk00 = p40
-                fk10 = 1.0 - p0 - 2.0 * p40
-                fk20 = p0 + p40
-
-                id000 = ind0
-                id010 = ind0 + 9
-                id100 = ind0 + 1
-                id110 = ind0 + 10
-                id200 = ind0 + 2
-                id210 = ind0 + 11
-            elif specparm > 0.875:
-                p0 = -fs
-                p40 = p0 ** 4
-                fk00 = p40
-                fk10 = 1.0 - p0 - 2.0 * p40
-                fk20 = p0 + p40
-
-                id000 = ind0 + 1
-                id010 = ind0 + 10
-                id100 = ind0
-                id110 = ind0 + 9
-                id200 = ind0 - 1
-                id210 = ind0 + 8
-            else:
-                fk00 = 1.0 - fs
-                fk10 = fs
-                fk20 = 0.0
-
-                id000 = ind0
-                id010 = ind0 + 9
-                id100 = ind0 + 1
-                id110 = ind0 + 10
-                id200 = ind0
-                id210 = ind0
-
-            fac000 = fk00 * fac00
-            fac100 = fk10 * fac00
-            fac200 = fk20 * fac00
-            fac010 = fk00 * fac10
-            fac110 = fk10 * fac10
-            fac210 = fk20 * fac10
-
-            id001 = id001
-            id011 = id011
-            id101 = id101
-            id111 = id111
-            id201 = id201
-            id211 = id211
-
-            if specparm1 < 0.125:
-                p1 = fs1 - 1.0
-                p41 = p1 ** 4
-                fk01 = p41
-                fk11 = 1.0 - p1 - 2.0 * p41
-                fk21 = p1 + p41
-
-                id001 = ind1
-                id011 = ind1 + 9
-                id101 = ind1 + 1
-                id111 = ind1 + 10
-                id201 = ind1 + 2
-                id211 = ind1 + 11
-            elif specparm1 > 0.875:
-                p1 = -fs1
-                p41 = p1 ** 4
-                fk01 = p41
-                fk11 = 1.0 - p1 - 2.0 * p41
-                fk21 = p1 + p41
-
-                id001 = ind1 + 1
-                id011 = ind1 + 10
-                id101 = ind1
-                id111 = ind1 + 9
-                id201 = ind1 - 1
-                id211 = ind1 + 8
-            else:
-                fk01 = 1.0 - fs1
-                fk11 = fs1
-                fk21 = 0.0
-
-                id001 = ind1
-                id011 = ind1 + 9
-                id101 = ind1 + 1
-                id111 = ind1 + 10
-                id201 = ind1
-                id211 = ind1
-
-            fac001 = fk01 * fac01
-            fac101 = fk11 * fac01
-            fac201 = fk21 * fac01
-            fac011 = fk01 * fac11
-            fac111 = fk11 * fac11
-            fac211 = fk21 * fac11
+            fac000,fac100,fac200,fac010,fac110,fac210,id000,id010,id100,id110,id200,id210 = set_ids(specparm, fs, fac00, fac10,ind0)
+            fac001,fac101,fac201,fac011,fac111,fac211,id001,id011,id101,id111,id201,id211 = set_ids(specparm1,fs1,fac01, fac11,ind1)
 
             for ig in range(ng12):
-                tauself = selffac * (
-                    selfref[0, 0, 0][ig, inds]
-                    + selffrac
-                    * (selfref[0, 0, 0][ig, indsp] - selfref[0, 0, 0][ig, inds])
-                )
-                taufor = forfac * (
-                    forref[0, 0, 0][ig, indf]
-                    + forfrac * (forref[0, 0, 0][ig, indfp] - forref[0, 0, 0][ig, indf])
-                )
 
-                taug[0, 0, 0][ns12 + ig] = (
+                tau_major[0, 0, 0][ig] = (
                     speccomb
                     * (
                         fac000 * absa[0, 0, 0][ig, id000]
@@ -3355,6 +3204,82 @@ def taugb12(
                         + fac201 * absa[0, 0, 0][ig, id201]
                         + fac211 * absa[0, 0, 0][ig, id211]
                     )
+                )
+
+
+
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "nspa": nspa[11],
+        "nspb": nspb[11],
+        "ng12": ng12,
+        "ns12": ns12,
+        "oneminus": oneminus,
+    },
+)
+def taugb12b(
+    tau_major: Field[(DTYPE_FLT, (ng12,))],
+    laytrop: FIELD_BOOL,
+    colamt: Field[type_maxgas],
+    selffac: FIELD_FLT,
+    selffrac: FIELD_FLT,
+    indself: FIELD_INT,
+    forfac: FIELD_FLT,
+    forfrac: FIELD_FLT,
+    indfor: FIELD_INT,
+    fracs: Field[type_ngptlw],
+    taug: Field[type_ngptlw],
+    selfref: Field[(DTYPE_FLT, (ng09, 10))],
+    forref: Field[(DTYPE_FLT, (ng09, 4))],
+    fracrefa: Field[(DTYPE_FLT, (ng09, 9))],
+    chi_mls: Field[(DTYPE_FLT, (7, 59))],
+    inds: FIELD_INT,
+    indsp: FIELD_INT,
+    indf: FIELD_INT,
+    indfp: FIELD_INT,
+    tauself: FIELD_FLT,
+    taufor: FIELD_FLT,
+    jpl: FIELD_INT,
+    jplp: FIELD_INT,
+    specparm_planck: FIELD_FLT,
+):
+    from __externals__ import nspa, ng12, ns12, oneminus
+
+    with computation(PARALLEL):
+        with interval(...):
+            refrat_planck_a = chi_mls[0, 0, 0][0, 9] / chi_mls[0, 0, 0][1, 9]
+
+    with computation(PARALLEL), interval(1, None):
+        if laytrop:
+            speccomb_planck = colamt[0, 0, 0][0] + refrat_planck_a * colamt[0, 0, 0][1]
+            specparm_planck = colamt[0, 0, 0][0] / speccomb_planck
+            if specparm_planck >= oneminus:
+                specparm_planck = oneminus
+            specmult_planck = 8.0 * specparm_planck
+            jpl = 1 + specmult_planck - 1
+            fpl = mod(specmult_planck, 1.0)
+
+            inds = indself - 1
+            indf = indfor - 1
+            indsp = inds + 1
+            indfp = indf + 1
+            jplp = jpl + 1
+
+            for ig in range(ng12):
+                tauself = selffac * (
+                    selfref[0, 0, 0][ig, inds]
+                    + selffrac
+                    * (selfref[0, 0, 0][ig, indsp] - selfref[0, 0, 0][ig, inds])
+                )
+                taufor = forfac * (
+                    forref[0, 0, 0][ig, indf]
+                    + forfrac * (forref[0, 0, 0][ig, indfp] - forref[0, 0, 0][ig, indf])
+                )
+
+                taug[0, 0, 0][ns12 + ig] = (
+                    tau_major[0,0,0][ig]
                     + tauself
                     + taufor
                 )
@@ -4658,5 +4583,3 @@ def rtrnmc_b(
         hlwc = (fnet[0, 0, -1] - fnet) * rfdelp
         if lhlw0:
             hlw0 = (fnetc[0, 0, -1] - fnetc) * rfdelp
-
-"""
