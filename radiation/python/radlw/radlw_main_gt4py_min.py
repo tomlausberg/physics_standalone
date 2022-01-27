@@ -28,40 +28,7 @@ from util import (
 )
 from config import *
 
-from python.radlw.stencils_gt4py_split import (
-    rebuild,
-    validate,
-    firstloop,
-    cldprop,
-    setcoef,
-    taugb01,
-    taugb02,
-    taugb06,
-    taugb08,
-    taugb10,
-    taugb11,
-    taugb12,
-    taugb14,
-    combine_optical_depth,
-    taubg03a, 
-    taubg03b,
-    taugb04a, 
-    taugb04b,
-    taugb05a,
-    taugb05b,
-    taugb07a,
-    taugb07b,
-    taugb09a,
-    taugb09b,
-    taugb13a,
-    taugb13b,
-    taugb15a,
-    taugb15b,
-    taugb16a,
-    taugb16b,
-    rtrnmc_a,
-    rtrnmc_b
-)
+from stencils_gt4py_split import *
 
 import serialbox as ser
 
@@ -921,42 +888,52 @@ class RadLWClass:
         )
         timings["taugb02"] = exec_info["run_end_time"] - exec_info["run_start_time"]
 
-        taumajor3 = create_storage_zeros(backend,shape_nlp1,type_ngptlw)
-        taubg03a(
+        tau_major3 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng03,)))
+        taugb03a(
+            tau_major3,
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["rfrate"],
+            self.locdict_gt4py["fac00"],
             self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
             self.locdict_gt4py["fac11"],
             self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
             self.locdict_gt4py["jt1"],
-            self.lookupdict_gt4py2["absa"],
-            self.lookupdict_gt4py2["absb"],
+            self.lookupdict_gt4py3["absa"],
+            self.lookupdict_gt4py3["absb"],
+            self.locdict_gt4py["ind0"],
             self.locdict_gt4py["ind1"],
+            self.locdict_gt4py["js"],
             self.locdict_gt4py["js1"],
+            self.locdict_gt4py["id000"],
+            self.locdict_gt4py["id010"],
+            self.locdict_gt4py["id100"],
+            self.locdict_gt4py["id110"],
+            self.locdict_gt4py["id200"],
+            self.locdict_gt4py["id210"],
             self.locdict_gt4py["id001"],
             self.locdict_gt4py["id011"],
             self.locdict_gt4py["id101"],
             self.locdict_gt4py["id111"],
             self.locdict_gt4py["id201"],
             self.locdict_gt4py["id211"],
+            self.locdict_gt4py["specparm"],
             self.locdict_gt4py["specparm1"],
-            taumajor3,
             domain=shape_nlp1,
             origin=default_origin,
             validate_args=validate,
             exec_info=exec_info
         )
         timings["taugb03a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        taubg03b(
+        
+        taugb03b(
+            tau_major3,
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
             self.locdict_gt4py["colamt"],
-            self.locdict_gt4py["rfrate"],
-            self.locdict_gt4py["fac00"],
-            self.locdict_gt4py["fac10"],
             self.locdict_gt4py["jp"],
-            self.locdict_gt4py["jt"],
             self.locdict_gt4py["selffac"],
             self.locdict_gt4py["selffrac"],
             self.locdict_gt4py["indself"],
@@ -967,8 +944,6 @@ class RadLWClass:
             self.locdict_gt4py["indminor"],
             self.locdict_gt4py["fracs"],
             self.locdict_gt4py["taug"],
-            self.lookupdict_gt4py3["absa"],
-            self.lookupdict_gt4py3["absb"],
             self.lookupdict_gt4py3["selfref"],
             self.lookupdict_gt4py3["forref"],
             self.lookupdict_gt4py3["fracrefa"],
@@ -976,7 +951,6 @@ class RadLWClass:
             self.lookupdict_gt4py3["ka_mn2o"],
             self.lookupdict_gt4py3["kb_mn2o"],
             self.lookupdict_gt4py3["chi_mls"],
-            self.locdict_gt4py["ind0"],
             self.locdict_gt4py["inds"],
             self.locdict_gt4py["indsp"],
             self.locdict_gt4py["indf"],
@@ -985,27 +959,18 @@ class RadLWClass:
             self.locdict_gt4py["indmp"],
             self.locdict_gt4py["tauself"],
             self.locdict_gt4py["taufor"],
-            self.locdict_gt4py["js"],
             self.locdict_gt4py["jmn2o"],
             self.locdict_gt4py["jmn2op"],
             self.locdict_gt4py["jpl"],
             self.locdict_gt4py["jplp"],
-            self.locdict_gt4py["id000"],
-            self.locdict_gt4py["id010"],
-            self.locdict_gt4py["id100"],
-            self.locdict_gt4py["id110"],
-            self.locdict_gt4py["id200"],
-            self.locdict_gt4py["id210"],
-            self.locdict_gt4py["specparm"],
             self.locdict_gt4py["ratn2o"],
-            taumajor3,
             domain=shape_nlp1,
             origin=default_origin,
             validate_args=validate,
             exec_info=exec_info
         )
         timings["taugb03b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        """
         tau_major4 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
         taugb04a(
             tau_major4,
@@ -1999,4 +1964,5 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["rtrnmc_b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        """
         return timings
