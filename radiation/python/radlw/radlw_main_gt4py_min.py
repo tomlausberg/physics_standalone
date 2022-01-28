@@ -790,7 +790,7 @@ class RadLWClass:
 
         timings["setcoef"] = exec_info["run_end_time"] - exec_info["run_start_time"]
 
-
+        
         taugb01(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["pavel"],
@@ -887,7 +887,7 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["taugb02"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        
         tau_major3 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng03,)))
         taugb03a(
             tau_major3,
@@ -1259,7 +1259,7 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["taugb07b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        
         taugb08(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
@@ -1492,7 +1492,7 @@ class RadLWClass:
 
         tau_major12 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng12,)))
         taugb12a(
-            tau_major12
+            tau_major12,
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["rfrate"],
@@ -1528,8 +1528,8 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["taugb12a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        taugb12a(
-            tau_major12
+        taugb12b(
+            tau_major12,
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["selffac"],
@@ -1559,7 +1559,7 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["taugb12b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        
         tau_major13 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng13,)))
         taugb13a(
             tau_major13,
@@ -1766,7 +1766,7 @@ class RadLWClass:
             exec_info=exec_info,
         )
         timings["taugb15b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        
         tau_major16 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng07,)))
         taugb16a(
             tau_major16,
@@ -1816,7 +1816,8 @@ class RadLWClass:
             domain=shape_nlp1,
             origin=default_origin,
             validate_args=validate,
-            exec_info=exec_info
+            exec_info=exec_info,
+            
         )
         timings["taugb16a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
 
@@ -1865,7 +1866,7 @@ class RadLWClass:
             exec_info=exec_info,
         )
         timings["taugb16b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        
         combine_optical_depth(
             self.NGB,
             self.locdict_gt4py["ib"],
@@ -1877,7 +1878,7 @@ class RadLWClass:
             validate_args=validate,
         )
         timings["combine_optical_depth"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        """
         rtrnmc_a(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["secdiff"],
@@ -1929,7 +1930,7 @@ class RadLWClass:
             exec_info=exec_info,
         )
         timings["rtrnmc_a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        """
         rtrnmc_b(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["delp"],
@@ -1976,5 +1977,5 @@ class RadLWClass:
             exec_info=exec_info
         )
         timings["rtrnmc_b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        """
+        
         return timings

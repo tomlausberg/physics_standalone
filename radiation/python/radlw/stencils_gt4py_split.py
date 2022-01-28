@@ -332,7 +332,7 @@ def firstloop(
             colbrd = coldry - summol
 
 
-@gtscript.stencil(
+@stencil(
     backend=backend,
     rebuild=rebuild,
     externals={
@@ -1597,6 +1597,17 @@ def taugb04a(
                     + fac111 * absb[0, 0, 0][ig2, id111]
                 )
 
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "nspa": nspa[3],
+        "nspb": nspb[3],
+        "ng04": ng04,
+        "ns04": ns04,
+        "oneminus": oneminus,
+    },
+)
 def taugb04b(
     tau_major: Field[(DTYPE_FLT, (ng04,))],
     laytrop: FIELD_BOOL,
@@ -3878,7 +3889,6 @@ def taugb15b(
         "oneminus": oneminus,
     },
 )
-
 def taugb16a(
     tau_major: Field[(DTYPE_FLT, (ng16,))],
     laytrop: FIELD_BOOL,
@@ -3972,11 +3982,22 @@ def taugb16a(
                 )
 
 
-
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "nspa": nspa[15],
+        "nspb": nspb[15],
+        "ng16": ng16,
+        "ns16": ns16,
+        "oneminus": oneminus,
+    },
+)
 def taugb16b(
     tau_major: Field[(DTYPE_FLT, (ng16,))],
     laytrop: FIELD_BOOL,
     colamt: Field[type_maxgas],
+    rfrate: Field[(DTYPE_FLT, (nrates, 2))],
     fac00: FIELD_FLT,
     fac01: FIELD_FLT,
     fac10: FIELD_FLT,
@@ -4073,13 +4094,30 @@ def taugb16b(
                 fracs[0, 0, 0][ns16 + ig2] = fracrefb[0, 0, 0][ig2]
 
 
+
+
+@stencil(backend=backend, rebuild=rebuild, externals={"ngptlw": ngptlw})
+def combine_optical_depth(
+    NGB: Field[gtscript.IJ, (DTYPE_INT, (ngptlw,))],
+    ib: FIELD_2DINT,
+    taug: Field[type_ngptlw],
+    tauaer: Field[type_nbands],
+    tautot: Field[type_ngptlw],
+):
+    from __externals__ import ngptlw
+
+    with computation(FORWARD), interval(1, None):
+        for ig in range(ngptlw):
+            ib = NGB[0, 0][ig] - 1
+
+            tautot[0, 0, 0][ig] = taug[0, 0, 0][ig] + tauaer[0, 0, 0][ib]
+
 rec_6 = 0.166667
 tblint = ntbl
 flxfac = wtdiff * fluxfac
 lhlw0 = True
 
-
-
+"""
 @stencil(
     backend,
     rebuild=rebuild,
@@ -4348,24 +4386,7 @@ def rtrnmc_a(
                 clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig]
 
             reflct[0, 0, 0][ig] = 1.0 - semiss[0, 0][ib]
-
-@stencil(backend=backend, rebuild=rebuild, externals={"ngptlw": ngptlw})
-def combine_optical_depth(
-    NGB: Field[gtscript.IJ, (DTYPE_INT, (ngptlw,))],
-    ib: FIELD_2DINT,
-    taug: Field[type_ngptlw],
-    tauaer: Field[type_nbands],
-    tautot: Field[type_ngptlw],
-):
-    from __externals__ import ngptlw
-
-    with computation(FORWARD), interval(1, None):
-        for ig in range(ngptlw):
-            ib = NGB[0, 0][ig] - 1
-
-            tautot[0, 0, 0][ig] = taug[0, 0, 0][ig] + tauaer[0, 0, 0][ib]
-
-
+"""
 
 @stencil(
     backend,
