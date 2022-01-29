@@ -1878,8 +1878,58 @@ class RadLWClass:
             validate_args=validate,
         )
         timings["combine_optical_depth"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        """
-        rtrnmc_a(
+        
+        rtrnmc_a_forward(
+            self.locdict_gt4py["semiss"],
+            self.locdict_gt4py["secdiff"],
+            self.locdict_gt4py["taucld"],
+            self.locdict_gt4py["fracs"],
+            self.locdict_gt4py["tautot"],
+            self.locdict_gt4py["cldfmc"],
+            self.locdict_gt4py["pklay"],
+            self.locdict_gt4py["pklev"],
+            self.exp_tbl,
+            self.tau_tbl,
+            self.tfn_tbl,
+            self.NGB,
+            self.locdict_gt4py["clrdrad"],
+            self.locdict_gt4py["totdrad"],
+            self.locdict_gt4py["gassrcu"],
+            self.locdict_gt4py["totsrcu"],
+            self.locdict_gt4py["trngas"],
+            self.locdict_gt4py["efclrfr"],
+            self.locdict_gt4py["totsrcd"],
+            self.locdict_gt4py["gassrcd"],
+            self.locdict_gt4py["tblind"],
+            self.locdict_gt4py["odepth"],
+            self.locdict_gt4py["odtot"],
+            self.locdict_gt4py["odcld"],
+            self.locdict_gt4py["atrtot"],
+            self.locdict_gt4py["atrgas"],
+            self.locdict_gt4py["reflct"],
+            self.locdict_gt4py["totfac"],
+            self.locdict_gt4py["gasfac"],
+            self.locdict_gt4py["plfrac"],
+            self.locdict_gt4py["blay"],
+            self.locdict_gt4py["bbdgas"],
+            self.locdict_gt4py["bbdtot"],
+            self.locdict_gt4py["bbugas"],
+            self.locdict_gt4py["bbutot"],
+            self.locdict_gt4py["dplnku"],
+            self.locdict_gt4py["dplnkd"],
+            self.locdict_gt4py["radtotd"],
+            self.locdict_gt4py["radclrd"],
+            self.locdict_gt4py["clfm"],
+            self.locdict_gt4py["trng"],
+            self.locdict_gt4py["itgas"],
+            self.locdict_gt4py["ittot"],
+            self.locdict_gt4py["ib"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info,
+        )
+        rtrnmc_a_back(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["secdiff"],
             self.locdict_gt4py["taucld"],
@@ -1930,7 +1980,7 @@ class RadLWClass:
             exec_info=exec_info,
         )
         timings["rtrnmc_a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        """
+        
         rtrnmc_b(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["delp"],

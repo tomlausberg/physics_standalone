@@ -4117,7 +4117,7 @@ tblint = ntbl
 flxfac = wtdiff * fluxfac
 lhlw0 = True
 
-"""
+
 @stencil(
     backend,
     rebuild=rebuild,
@@ -4131,7 +4131,7 @@ lhlw0 = True
         "lhlw0": lhlw0,
     },
 )
-def rtrnmc_a(
+def rtrnmc_a_forward    (
     semiss: Field[gtscript.IJ, type_nbands],
     secdif: Field[gtscript.IJ, type_nbands],
     taucld: Field[type_nbands],
@@ -4255,7 +4255,6 @@ def rtrnmc_a(
                 )
                 totsrcd[0, 0, 0][ig0] = bbdtot[0, 0, 0][ig0] * atrtot[0, 0, 0][ig0]
                 totsrcu[0, 0, 0][ig0] = bbutot[0, 0, 0][ig0] * atrtot[0, 0, 0][ig0]
-
                 # total sky radiance
                 radtotd[0, 0, 0][ig0] = (
                     radtotd[0, 0, 0][ig0] * trng[0, 0, 0][ig0] * efclrfr[0, 0, 0][ig0]
@@ -4286,6 +4285,66 @@ def rtrnmc_a(
                 clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig0]
 
             reflct[0, 0, 0][ig0] = 1.0 - semiss[0, 0][ib]
+@stencil(
+    backend,
+    rebuild=rebuild,
+    externals={
+        "rec_6": rec_6,
+        "bpade": bpade,
+        "tblint": tblint,
+        "eps": eps,
+        "flxfac": flxfac,
+        "heatfac": heatfac,
+        "lhlw0": lhlw0,
+    },
+)
+def rtrnmc_a_back(
+    semiss: Field[gtscript.IJ, type_nbands],
+    secdif: Field[gtscript.IJ, type_nbands],
+    taucld: Field[type_nbands],
+    fracs: Field[type_ngptlw],
+    tautot: Field[type_ngptlw],
+    cldfmc: Field[type_ngptlw],
+    pklay: Field[type_nbands],
+    pklev: Field[type_nbands],
+    exp_tbl: Field[type_ntbmx],
+    tau_tbl: Field[type_ntbmx],
+    tfn_tbl: Field[type_ntbmx],
+    NGB: Field[gtscript.IJ, (np.int32, (140,))],
+    clrdrad: Field[type_nbands],
+    totdrad: Field[type_nbands],
+    gassrcu: Field[type_ngptlw],
+    totsrcu: Field[type_ngptlw],
+    trngas: Field[type_ngptlw],
+    efclrfr: Field[type_ngptlw],
+    totsrcd: Field[type_ngptlw],
+    gassrcd: Field[type_ngptlw],
+    tblind: Field[type_ngptlw],
+    odepth: Field[type_ngptlw],
+    odtot: Field[type_ngptlw],
+    odcld: Field[type_ngptlw],
+    atrtot: Field[type_ngptlw],
+    atrgas: Field[type_ngptlw],
+    reflct: Field[type_ngptlw],
+    totfac: Field[type_ngptlw],
+    gasfac: Field[type_ngptlw],
+    plfrac: Field[type_ngptlw],
+    blay: Field[type_ngptlw],
+    bbdgas: Field[type_ngptlw],
+    bbdtot: Field[type_ngptlw],
+    bbugas: Field[type_ngptlw],
+    bbutot: Field[type_ngptlw],
+    dplnku: Field[type_ngptlw],
+    dplnkd: Field[type_ngptlw],
+    radtotd: Field[type_ngptlw],
+    radclrd: Field[type_ngptlw],
+    clfm: Field[type_ngptlw],
+    trng: Field[type_ngptlw],
+    itgas: Field[(np.int32, (ngptlw,))],
+    ittot: Field[(np.int32, (ngptlw,))],
+    ib: FIELD_2DINT,
+):
+    from __externals__ import rec_6, bpade, tblint, eps, flxfac, heatfac, lhlw0
 
     with computation(BACKWARD), interval(0, -2):
         for ig in range(ngptlw):
@@ -4357,36 +4416,36 @@ def rtrnmc_a(
                 totsrcd[0, 0, 0][ig] = bbdtot[0, 0, 0][ig] * atrtot[0, 0, 0][ig]
                 totsrcu[0, 0, 0][ig] = bbutot[0, 0, 0][ig] * atrtot[0, 0, 0][ig]
 
-                # total sky radiance
-                radtotd[0, 0, 0][ig] = (
-                    radtotd[0, 0, 1][ig] * trng[0, 0, 0][ig] * efclrfr[0, 0, 0][ig]
-                    + gassrcd[0, 0, 0][ig]
-                    + clfm[0, 0, 0][ig] * (totsrcd[0, 0, 0][ig] - gassrcd[0, 0, 0][ig])
-                )
-                totdrad[0, 0, 0][ib] = totdrad[0, 0, 0][ib] + radtotd[0, 0, 0][ig]
+                # # total sky radiance
+                # radtotd[0, 0, 0][ig] = (
+                #     radtotd[0, 0, 1][ig] * trng[0, 0, 0][ig] * efclrfr[0, 0, 0][ig]
+                #     + gassrcd[0, 0, 0][ig]
+                #     + clfm[0, 0, 0][ig] * (totsrcd[0, 0, 0][ig] - gassrcd[0, 0, 0][ig])
+                # )
+                # totdrad[0, 0, 0][ib] = totdrad[0, 0, 0][ib] + radtotd[0, 0, 0][ig]
 
-                # clear sky radiance
-                radclrd[0, 0, 0][ig] = (
-                    radclrd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
-                )
-                clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig]
-            else:
-                # clear layer
+                # # clear sky radiance
+                # radclrd[0, 0, 0][ig] = (
+                #     radclrd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
+                # )
+                # clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig]
+            # else:
+            #     # clear layer
 
-                # total sky radiance
-                radtotd[0, 0, 0][ig] = (
-                    radtotd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
-                )
-                totdrad[0, 0, 0][ib] = totdrad[0, 0, 0][ib] + radtotd[0, 0, 0][ig]
+            #     # total sky radiance
+            #     radtotd[0, 0, 0][ig] = (
+            #         radtotd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
+            #     )
+            #     totdrad[0, 0, 0][ib] = totdrad[0, 0, 0][ib] + radtotd[0, 0, 0][ig]
 
-                # clear sky radiance
-                radclrd[0, 0, 0][ig] = (
-                    radclrd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
-                )
-                clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig]
+            #     # clear sky radiance
+            #     radclrd[0, 0, 0][ig] = (
+            #         radclrd[0, 0, 1][ig] * trng[0, 0, 0][ig] + gassrcd[0, 0, 0][ig]
+            #     )
+            #     clrdrad[0, 0, 0][ib] = clrdrad[0, 0, 0][ib] + radclrd[0, 0, 0][ig]
 
             reflct[0, 0, 0][ig] = 1.0 - semiss[0, 0][ib]
-"""
+
 
 @stencil(
     backend,
