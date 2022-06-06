@@ -65,6 +65,8 @@ from radlw.radlw_param import (
     ntbl,
     wtdiff,
 )
+
+
 from radphysparam import ilwcice, ilwcliq
 from config import *
 
@@ -212,7 +214,7 @@ def firstloop(
             else:
                 for j2 in range(nbands):
                     semiss[0, 0][j2] = semiss0[0, 0][j2]
-
+    
     with computation(PARALLEL):
         with interval(1, None):
             pavel = plyr
@@ -289,20 +291,23 @@ def firstloop(
                 cda4 = clouds[0, 0, 0][8]
             else:
                 cda1 = clouds[0, 0, 0][1]
-
+    
+    
     with computation(FORWARD):
+        #TODO Find why this doesn't work (gpu & cpu) with v36
         with interval(0, 1):
             cldfrc = 1.0
+        
         with interval(1, 2):
             tem11 = coldry[0, 0, 0] + colamt[0, 0, 0][0]
             tem22 = colamt[0, 0, 0][0]
-
+    
     with computation(FORWARD):
         with interval(2, None):
             #  --- ...  compute precipitable water vapor for diffusivity angle adjustments
             tem11 = tem11[0, 0, -1] + coldry + colamt[0, 0, 0][0]
             tem22 = tem22[0, 0, -1] + colamt[0, 0, 0][0]
-
+    
     with computation(FORWARD):
         with interval(-1, None):
             tem00 = 10.0 * tem22 / (amdw * tem11 * con_g)
@@ -330,6 +335,7 @@ def firstloop(
             for m in range(1, maxgas):
                 summol += colamt[0, 0, 0][m]
             colbrd = coldry - summol
+    
 
 
 @stencil(
@@ -693,7 +699,7 @@ def setcoef(
             rfrate = rfrate
             chi_mls = chi_mls
             laytrop = laytrop
-
+            
             if plog > 4.56:
 
                 # compute troposphere mask, True in troposphere, False otherwise
@@ -743,7 +749,7 @@ def setcoef(
                 rfrate[0, 0, 0][4, 1] = (
                     chi_mls[0, 0, 0][3, jp + 1] / chi_mls[0, 0, 0][1, jp + 1]
                 )
-
+            
             else:
                 laytrop = False
 
@@ -771,16 +777,21 @@ def setcoef(
                 )
 
             #  --- ...  rescale selffac and forfac for use in taumol
-
+            
             selffac = colamt[0, 0, 0][0] * selffac
             forfac = colamt[0, 0, 0][0] * forfac
 
             #  --- ...  add one to computed indices for compatibility with later
             #           subroutines
-
+            
+            #TODO: causes segfault for cpu, not gpu
+            
             jp += 1
-            jt += 1
             jt1 += 1
+            jt += 1
+            
+            
+
 
 
 @stencil(
@@ -853,7 +864,7 @@ def taugb01(
         pavel = pavel
         colbrd = colbrd
         scaleminorn2 = scaleminorn2
-
+        
         if laytrop:
             ind0 = ((jp - 1) * 5 + (jt - 1)) * nspa
             ind1 = (jp * 5 + (jt1 - 1)) * nspa
@@ -873,7 +884,7 @@ def taugb01(
                 corradj = 1.0 - 0.15 * (250.0 - pp) / 154.4
             else:
                 corradj = 1.0
-
+            
             for ig in range(ng01):
                 tauself = selffac * (
                     selfref[0, 0, 0][ig, inds]
@@ -889,7 +900,7 @@ def taugb01(
                     + minorfrac
                     * (ka_mn2[0, 0, 0][ig, indmp] - ka_mn2[0, 0, 0][ig, indm])
                 )
-
+                
                 taug[0, 0, 0][ig] = corradj * (
                     colamt[0, 0, 0][0]
                     * (
@@ -902,9 +913,10 @@ def taugb01(
                     + taufor
                     + taun2
                 )
-
+                
+                
                 fracs[0, 0, 0][ig] = fracrefa[0, 0, 0][ig]
-
+        
         else:
             ind0 = ((jp - 13) * 5 + (jt - 1)) * nspb
             ind1 = ((jp - 12) * 5 + (jt1 - 1)) * nspb
@@ -930,7 +942,7 @@ def taugb01(
                     + minorfrac
                     * (kb_mn2[0, 0, 0][ig2, indmp] - kb_mn2[0, 0, 0][ig2, indm])
                 )
-
+                
                 taug[0, 0, 0][ig2] = corradj * (
                     colamt[0, 0, 0][0]
                     * (
@@ -942,8 +954,9 @@ def taugb01(
                     + taufor
                     + taun2
                 )
-
+                
                 fracs[0, 0, 0][ig2] = fracrefb[0, 0, 0][ig2]
+
 
 
 @stencil(
@@ -1019,7 +1032,6 @@ def taugb02(
                     forref[0, 0, 0][ig, indf]
                     + forfrac * (forref[0, 0, 0][ig, indfp] - forref[0, 0, 0][ig, indf])
                 )
-
                 taug[0, 0, 0][ns02 + ig] = corradj * (
                     colamt[0, 0, 0][0]
                     * (
@@ -1049,7 +1061,7 @@ def taugb02(
                     + forfrac
                     * (forref[0, 0, 0][ig2, indfp] - forref[0, 0, 0][ig2, indf])
                 )
-
+                
                 taug[0, 0, 0][ns02 + ig2] = (
                     colamt[0, 0, 0][0]
                     * (
@@ -1060,7 +1072,6 @@ def taugb02(
                     )
                     + taufor
                 )
-
                 fracs[0, 0, 0][ns02 + ig2] = fracrefb[0, 0, 0][ig2]
 
 
@@ -1119,7 +1130,7 @@ def taugb03a(
             js = 1 + specmult
             fs = mod(specmult, 1.0)
             ind0 = ((jp - 1) * 5 + (jt - 1)) * nspa + js - 1
-
+            
             speccomb1 = colamt[0, 0, 0][0] + rfrate[0, 0, 0][0, 1] * colamt[0, 0, 0][1]
             specparm1 = colamt[0, 0, 0][0] / speccomb1
             specmult1 = 8.0 * min(specparm1, oneminus)
@@ -1129,7 +1140,7 @@ def taugb03a(
 
             fac000,fac100,fac200,fac010,fac110,fac210,id000,id010,id100,id110,id200,id210 = set_ids(specparm,fs,fac00, fac10,ind0)
             fac001,fac101,fac201,fac011,fac111,fac211,id001,id011,id101,id111,id201,id211 = set_ids(specparm1,fs1,fac01, fac11,ind1)
-
+            
             for ig in range(ng03):
 
                 tau_major[0,0,0][ig] = speccomb * (
@@ -1199,6 +1210,7 @@ def taugb03a(
                     + fac101 * absb[0, 0, 0][ig2, id101]
                     + fac111 * absb[0, 0, 0][ig2, id111]
                 )
+
 
 
 @stencil(
@@ -3130,6 +3142,7 @@ def taugb11(
 
                 fracs[0, 0, 0][ns11 + ig2] = fracrefb[0, 0, 0][ig2]
 
+
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -4416,6 +4429,7 @@ def rtrnmc_a_back(
                 totsrcd[0, 0, 0][ig] = bbdtot[0, 0, 0][ig] * atrtot[0, 0, 0][ig]
                 totsrcu[0, 0, 0][ig] = bbutot[0, 0, 0][ig] * atrtot[0, 0, 0][ig]
 
+                # TODO fix
                 # # total sky radiance
                 # radtotd[0, 0, 0][ig] = (
                 #     radtotd[0, 0, 1][ig] * trng[0, 0, 0][ig] * efclrfr[0, 0, 0][ig]
@@ -4663,3 +4677,4 @@ def rtrnmc_b(
         hlwc = (fnet[0, 0, -1] - fnet) * rfdelp
         if lhlw0:
             hlw0 = (fnetc[0, 0, -1] - fnetc) * rfdelp
+

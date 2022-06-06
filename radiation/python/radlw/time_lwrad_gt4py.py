@@ -26,12 +26,14 @@ iovrlw = 1
 isubclw = 2
 
 
-number_of_runs = 20
+number_of_runs = 4
+number_of_ranks = 4
+
 timings = {}
 for run in range(number_of_runs):
     print(f"Run {run} of {number_of_runs}")
-    for rank in range(6):
-        rlw = RadLWClass(rank, iovrlw, isubclw)
+    for rank in range(number_of_ranks):
+        rlw = RadLWClass(rank, iovrlw, isubclw, scale_factor=12)
         rlw.create_input_data(rank)
         current_timings = rlw.minimum_timings(rank)
         for key, val in current_timings.items():
@@ -39,7 +41,7 @@ for run in range(number_of_runs):
 
 
 for key, val in timings.items():
-    timings[key] /= 6*number_of_runs
+    timings[key] /= number_of_ranks*number_of_runs
 
 with open("timings.json","w+") as timings_file:
     json.dump(timings,timings_file)

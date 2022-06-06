@@ -8,6 +8,8 @@ import serialbox as ser
 import os
 
 # Read serialized data at a specific tile and savepoint
+
+
 def read_data(path, scheme, tile, ser_count, is_in, vars):
     """Read serialized data from fv3gfs-fortran output
 
@@ -107,7 +109,7 @@ def searr_to_scalar(data_dict):
 
 # Transform a dictionary of numpy arrays into a dictionary of gt4py
 # storages of shape (iie-iis+1, jje-jjs+1, kke-kks+1)
-def numpy_dict_to_gt4py_dict(np_dict, vars, rank1_flag=False):
+def numpy_dict_to_gt4py_dict(np_dict, vars, dims, rank1_flag=False):
     """convert dictionary of numpy arrays from serialized data to GT4Py storages
 
     Args:
@@ -121,7 +123,6 @@ def numpy_dict_to_gt4py_dict(np_dict, vars, rank1_flag=False):
     gt4py_dict = {}
 
     for var in vars.keys():
-
         data = np_dict[var]
         shape = vars[var]["shape"]
         type = vars[var]["type"]
@@ -129,8 +130,8 @@ def numpy_dict_to_gt4py_dict(np_dict, vars, rank1_flag=False):
         if len(shape) == 1:
             tmp = np.tile(data[:, None], (1, 1))
             if var == "idxday":
-                tmp2 = np.zeros(npts, dtype=bool)
-                for n in range(npts):
+                tmp2 = np.zeros(dims.npts, dtype=bool)
+                for n in range(dims.npts):
                     if rank1_flag:
                         if tmp[n] > 1 and tmp[n] < 25:
                             tmp2[tmp[n] - 1] = True
@@ -159,11 +160,11 @@ def numpy_dict_to_gt4py_dict(np_dict, vars, rank1_flag=False):
         if data.size > 1:
             if tmp.ndim == 2:
                 gt4py_dict[var] = create_storage_from_array(
-                    tmp, backend, shape_2D, type
+                    tmp, backend, dims.shape_2D, type
                 )
             else:
                 gt4py_dict[var] = create_storage_from_array(
-                    tmp, backend, shape_nlp1, type
+                    tmp, backend, dims.shape_nlp1, type
                 )
         else:
             gt4py_dict[var] = deepcopy(data)
@@ -288,7 +289,8 @@ def compare_data(data, ref_data, explicit=True, blocking=True):
         assert flag, f"Output data does not match reference data for field {wrong}!"
     else:
         if not flag:
-            print(f"Output data does not match reference data for field {wrong}!")
+            print(
+                f"Output data does not match reference data for field {wrong}!")
 
 
 def create_storage_from_array(
@@ -358,7 +360,8 @@ def loadlookupdata(name, scheme):
     Returns:
         dict: dictionary containing storages with the data
     """
-    ds = xr.open_dataset(os.path.join(LOOKUP_DIR, scheme + "_" + name + "_data.nc"))
+    ds = xr.open_dataset(os.path.join(
+        LOOKUP_DIR, scheme + "_" + name + "_data.nc"))
 
     lookupdict = dict()
     lookupdict_gt4py = dict()
@@ -374,21 +377,59 @@ def loadlookupdata(name, scheme):
             )
         elif len(ds.data_vars[var].shape) == 3:
             lookupdict[var] = np.tile(
-                ds[var].data[None, None, None, :, :, :], (npts, 1, nlp1, 1, 1, 1)
+                ds[var].data[None, None, None, :,
+                             :, :], (npts, 1, nlp1, 1, 1, 1)
             )
 
         if len(ds.data_vars[var].shape) >= 1:
             lookupdict_gt4py[var] = create_storage_from_array(
-                lookupdict[var], backend, shape_nlp1, (ds[var].dtype, ds[var].shape)
+                lookupdict[var], backend, shape_nlp1, (
+                    ds[var].dtype, ds[var].shape)
             )
         else:
             lookupdict_gt4py[var] = float(ds[var].data)
 
     ds2 = xr.open_dataset(os.path.join(LOOKUP_DIR, "radlw_ref_data.nc"))
-    tmp = np.tile(ds2["chi_mls"].data[None, None, None, :, :], (npts, 1, nlp1, 1, 1))
+    tmp = np.tile(ds2["chi_mls"].data[None, None,
+                  None, :, :], (npts, 1, nlp1, 1, 1))
 
     lookupdict_gt4py["chi_mls"] = create_storage_from_array(
         tmp, backend, shape_nlp1, (DTYPE_FLT, ds2["chi_mls"].shape)
     )
 
     return lookupdict_gt4py
+
+
+def scale_dataset(data, scale_factor: int):
+    """
+    Scale a dataset by a given factor.
+    """
+    scaled_data = {}
+
+    for var in data:
+        data_var = data[var]
+        if isinstance(data_var, np.ndarray):
+            ndim = data_var.ndim
+        else:
+            ndim = 0
+
+        if ndim == 4:
+            scaled_data[var] = np.tile(data_var, (scale_factor, 1, 1, 1))
+        if ndim == 3:
+            scaled_data[var] = np.tile(data_var, (scale_factor, 1, 1))
+
+        elif ndim == 2:
+            scaled_data[var] = np.tile(data_var,  (scale_factor, 1))
+
+        elif ndim == 1:
+            scaled_data[var] = np.tile(data_var, scale_factor)
+
+        elif ndim == 0:
+            # hardcode "im" (horizontal loop extent)
+            if var == "im":
+                scaled_data[var] = data_var * scale_factor
+            else:
+                scaled_data[var] = data_var
+
+    return scaled_data
+    #done

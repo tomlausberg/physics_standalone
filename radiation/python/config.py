@@ -80,3 +80,14 @@ type_nbdsw = (DTYPE_FLT, (nbdsw,))
 type_ntbmx = (DTYPE_FLT, ((ntbmx + 1),))
 type_9 = (DTYPE_FLT, (9,))
 type_10 = (DTYPE_FLT, (10,))
+
+class Dimensions(object):
+    def __init__(self, npts, nlay, nlp1):
+        self.npts = npts
+        self.nlay = nlay
+        self.nlp1 = nlp1
+
+        self.shape = (npts, 1, 1)
+        self.shape_2D = (npts, 1)
+        self.shape_nlp1 = (npts, 1, nlp1)
+        self.shape_nlp2 = (npts, 1, nlp1 + 1)

@@ -1,20 +1,6 @@
-import numpy as np
-import xarray as xr
-import sys
-import time
-import warnings
-import json
-
-sys.path.insert(0, "..")
-from radphysparam import (
-    ilwrgas as ilwrgas,
-    icldflg as icldflg,
-    ilwcliq as ilwcliq,
-    ilwrate as ilwrate,
-    ilwcice as ilwcice,
-)
-from radlw.radlw_param import *
-from phys_const import con_g, con_cp, con_amd, con_amw, con_amo3
+import serialbox as ser
+from stencils_gt4py_split import *
+from config import *
 from util import (
     create_storage_from_array,
     create_storage_zeros,
@@ -25,12 +11,39 @@ from util import (
     numpy_dict_to_gt4py_dict,
     create_gt4py_dict_zeros,
     convert_gt4py_output_for_validation,
+    scale_dataset
 )
-from config import *
+from phys_const import con_g, con_cp, con_amd, con_amw, con_amo3
+from radlw.radlw_param import *
+from radphysparam import (
+    ilwrgas as ilwrgas,
+    icldflg as icldflg,
+    ilwcliq as ilwcliq,
+    ilwrate as ilwrate,
+    ilwcice as ilwcice,
+)
+import imp
+import numpy as np
+import xarray as xr
+import sys
+import time
+import warnings
+import json
 
-from stencils_gt4py_split import *
+sys.path.insert(0, "..")
 
-import serialbox as ser
+# from stencils_gt4py_split import validate #flag
+# from stencils_gt4py_split import firstloop
+# from stencils_gt4py_split import cldprop
+# from stencils_gt4py_split import setcoef
+# from stencils_gt4py_split import taugb01
+# from stencils_gt4py_split import taugb02
+# from stencils_gt4py_split import taugb03a
+# from stencils_gt4py_split import taugb03b
+# from stencils_gt4py_split import taugb04a
+# from stencils_gt4py_split import taugb04b
+# from stencils_gt4py_split import taugb05a
+# from stencils_gt4py_split import taugb05b
 
 
 class RadLWClass:
@@ -133,15 +146,7 @@ class RadLWClass:
     A1 = create_storage_from_array(a1, backend, shape_nlp1, type_nbands)
     A2 = create_storage_from_array(a2, backend, shape_nlp1, type_nbands)
 
-    NGB = create_storage_from_array(
-        np.tile(np.array(ngb)[None, None, :], (npts, 1, 1)),
-        backend,
-        shape_2D,
-        (DTYPE_INT, (ngptlw,)),
-        default_origin=(0, 0),
-    )
-
-    def __init__(self, me, iovrlw, isubclw):
+    def __init__(self, me, iovrlw, isubclw, scale_factor=1):
         """Initialize the LW scheme
 
         Args:
@@ -156,6 +161,19 @@ class RadLWClass:
                 =1: mcica sub-col, prescribed seeds to get random numbers
                 =2: mcica sub-col, providing array icseed for random numbers
         """
+        
+        # structure containing dimensions and shapes of the scheme
+        self.dims = Dimensions(npts*scale_factor,nlay,nlp1)
+        self.scale_factor = scale_factor
+        
+        self.NGB = create_storage_from_array(
+            np.tile(np.array(ngb)[None, None, :], (self.dims.npts, 1, 1)),
+            backend,
+            self.dims.shape_2D,
+            (DTYPE_INT, (ngptlw,)),
+            default_origin=(0, 0),
+        )
+
         self.lhlwb = False
         self.lhlw0 = False
         self.lflxprf = False
@@ -182,7 +200,8 @@ class RadLWClass:
                     f"  *** IOVRLW={self.iovrlw} is not available for",
                     " ISUBCLW=0 setting!!",
                 )
-                warnings.warn("      The program uses maximum/random overlap instead.")
+                warnings.warn(
+                    "      The program uses maximum/random overlap instead.")
             self.iovrlw = 1
 
         if me == 0:
@@ -231,9 +250,9 @@ class RadLWClass:
         self.fluxfac = pival * 2.0e4
 
         if ilwrate == 1:
-            self.heatfac = con_g * 864.0 / con_cp  #   (in k/day)
+            self.heatfac = con_g * 864.0 / con_cp  # (in k/day)
         else:
-            self.heatfac = con_g * 1.0e-2 / con_cp  #   (in k/second)
+            self.heatfac = con_g * 1.0e-2 / con_cp  # (in k/second)
 
         #  --- ...  compute lookup tables for transmittance, tau transition
         #           function, and clear sky tau (for the cloudy sky radiative
@@ -272,18 +291,21 @@ class RadLWClass:
                     - (self.exp_tbl[i] / (1.0 - self.exp_tbl[i]))
                 )
 
-        self.exp_tbl = np.tile(self.exp_tbl[None, None, None, :], (npts, 1, nlp1, 1))
-        self.tau_tbl = np.tile(self.tau_tbl[None, None, None, :], (npts, 1, nlp1, 1))
-        self.tfn_tbl = np.tile(self.tfn_tbl[None, None, None, :], (npts, 1, nlp1, 1))
+        self.exp_tbl = np.tile(
+            self.exp_tbl[None, None, None, :], (self.dims.npts, 1, nlp1, 1))
+        self.tau_tbl = np.tile(
+            self.tau_tbl[None, None, None, :], (self.dims.npts, 1, nlp1, 1))
+        self.tfn_tbl = np.tile(
+            self.tfn_tbl[None, None, None, :], (self.dims.npts, 1, nlp1, 1))
 
         self.exp_tbl = create_storage_from_array(
-            self.exp_tbl, backend, shape_nlp1, type_ntbmx
+            self.exp_tbl, backend, self.dims.shape_nlp1, type_ntbmx
         )
         self.tau_tbl = create_storage_from_array(
-            self.tau_tbl, backend, shape_nlp1, type_ntbmx
+            self.tau_tbl, backend, self.dims.shape_nlp1, type_ntbmx
         )
         self.tfn_tbl = create_storage_from_array(
-            self.tfn_tbl, backend, shape_nlp1, type_ntbmx
+            self.tfn_tbl, backend, self.dims.shape_nlp1, type_ntbmx
         )
 
         self._load_lookup_table_data()
@@ -310,7 +332,8 @@ class RadLWClass:
         """
 
         self.serializer2 = ser.Serializer(
-            ser.OpenModeKind.Read, LW_SERIALIZED_DIR, "Serialized_rank" + str(rank)
+            ser.OpenModeKind.Read, LW_SERIALIZED_DIR, "Serialized_rank" +
+            str(rank)
         )
 
         invars = {
@@ -338,32 +361,58 @@ class RadLWClass:
         indict = read_data(
             os.path.join(FORTRANDATA_DIR, "LW"), "lwrad", rank, 0, True, invars
         )
-        indict_gt4py = numpy_dict_to_gt4py_dict(indict, invars)
+
+        # scale dataset and convert to gt4py storages
+        indict = scale_dataset(indict,self.scale_factor)
+        # update invar dimensions after scaling
+        invars = {
+            "plyr": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "plvl": {"shape": (self.dims.npts, nlp1), "type": DTYPE_FLT},
+            "tlyr": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "tlvl": {"shape": (self.dims.npts, nlp1), "type": DTYPE_FLT},
+            "qlyr": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "olyr": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "gasvmr": {"shape": (self.dims.npts, nlay, 10), "type": type_10},
+            "clouds": {"shape": (self.dims.npts, nlay, 9), "type": type_9},
+            "icsdlw": {"shape": (self.dims.npts,), "type": DTYPE_INT},
+            "faerlw": {"shape": (self.dims.npts, nlay, nbands, 3), "type": type_nbands3},
+            "semis": {"shape": (self.dims.npts,), "type": DTYPE_FLT},
+            "tsfg": {"shape": (self.dims.npts,), "type": DTYPE_FLT},
+            "dz": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "delp": {"shape": (self.dims.npts, nlay), "type": DTYPE_FLT},
+            "de_lgth": {"shape": (self.dims.npts,), "type": DTYPE_FLT},
+            "im": {"shape": (), "type": DTYPE_INT},
+            "lmk": {"shape": (), "type": DTYPE_INT},
+            "lmp": {"shape": (), "type": DTYPE_INT},
+            "lprnt": {"shape": (), "type": DTYPE_BOOL},
+        }
+        indict_gt4py = numpy_dict_to_gt4py_dict(indict, invars, self.dims)
 
         outvars = {
             "htlwc": {
                 "shape": shape_nlp1,
                 "type": DTYPE_FLT,
-                "fortran_shape": (npts, nlay),
+                "fortran_shape": (self.dims.npts, nlay),
             },
             "htlw0": {
                 "shape": shape_nlp1,
                 "type": DTYPE_FLT,
-                "fortran_shape": (npts, nlay),
+                "fortran_shape": (self.dims.npts, nlay),
             },
             "cldtaulw": {
                 "shape": shape_nlp1,
                 "type": DTYPE_FLT,
-                "fortran_shape": (npts, nlay),
+                "fortran_shape": (self.dims.npts, nlay),
             },
-            "upfxc_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
-            "upfx0_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
-            "upfxc_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
-            "upfx0_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
-            "dnfxc_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
-            "dnfx0_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
+            "upfxc_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
+            "upfx0_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
+            "upfxc_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
+            "upfx0_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
+            "dnfxc_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
+            "dnfx0_s": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (self.dims.npts,)},
         }
 
+        #convert to gt4py storages
         outdict_gt4py = create_gt4py_dict_zeros(outvars)
 
         locvars = {
@@ -602,7 +651,8 @@ class RadLWClass:
         ds = xr.open_dataset(os.path.join(LOOKUP_DIR, "totplnk.nc"))
         totplnk = ds["totplnk"].data
 
-        totplnk = np.tile(totplnk[None, None, None, :, :], (npts, 1, nlp1, 1, 1))
+        totplnk = np.tile(
+            totplnk[None, None, None, :, :], (npts, 1, nlp1, 1, 1))
         lookupdict_gt4py["totplnk"] = create_storage_from_array(
             totplnk, backend, shape_nlp1, (DTYPE_FLT, (nplnk, nbands))
         )
@@ -614,7 +664,8 @@ class RadLWClass:
             tmp = ds2[var].data
 
             if var == "chi_mls":
-                tmp = np.tile(tmp[None, None, None, :, :], (npts, 1, nlp1, 1, 1))
+                tmp = np.tile(tmp[None, None, None, :, :],
+                              (npts, 1, nlp1, 1, 1))
                 lookupdict_gt4py[var] = create_storage_from_array(
                     tmp, backend, shape_nlp1, (DTYPE_FLT, (7, 59))
                 )
@@ -624,8 +675,10 @@ class RadLWClass:
                     tmp, backend, shape_nlp1, (DTYPE_FLT, (59,))
                 )
 
-        delwave = np.tile(self.delwave[None, None, None, :], (npts, 1, nlp1, 1))
-        delwave = create_storage_from_array(delwave, backend, shape_nlp1, type_nbands)
+        delwave = np.tile(
+            self.delwave[None, None, None, :], (npts, 1, nlp1, 1))
+        delwave = create_storage_from_array(
+            delwave, backend, shape_nlp1, type_nbands)
         lookupdict_gt4py["delwave"] = delwave
 
         print("Loading lookup table data . . .")
@@ -667,21 +720,24 @@ class RadLWClass:
             os.path.join(LOOKUP_DIR, "rand2d_tile" + str(rank) + "_lw.nc")
         )
         rand2d = ds["rand2d"][:, :].data
-        cdfunc = np.zeros((npts, ngptlw, nlay))
-        for n in range(npts):
-            cdfunc[n, :, :] = np.reshape(rand2d[n, :], (ngptlw, nlay), order="C")
+        rand2d = np.tile(rand2d,(self.scale_factor,1))
+        cdfunc = np.zeros((self.dims.npts, ngptlw, nlay))
+        for n in range(self.dims.npts):
+            cdfunc[n, :, :] = np.reshape(
+                rand2d[n, :], (ngptlw, nlay), order="C")
         cdfunc = np.insert(cdfunc, 0, 0, axis=2)
         cdfunc = np.transpose(cdfunc, (0, 2, 1))
 
         cdfunc = np.tile(cdfunc[:, None, :, :], (1, 1, 1, 1))
         self.lookupdict_gt4py["cdfunc"] = create_storage_from_array(
-            cdfunc, backend, shape_nlp1, type_ngptlw
+            cdfunc, backend, self.dims.shape_nlp1, type_ngptlw
         )
 
     def minimum_timings(self, rank):
         timings = {}
         exec_info = {}
-
+        print("Starting timings")
+        print("Firstloop")
         firstloop(
             self.indict_gt4py["plyr"],
             self.indict_gt4py["plvl"],
@@ -734,9 +790,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["firstloop"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-
+        timings["firstloop"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+        print("load random numbers")
         self._load_random_numbers(rank)
+        print("setcoef")
         setcoef(
             self.locdict_gt4py["pavel"],
             self.locdict_gt4py["tavel"],
@@ -788,9 +846,10 @@ class RadLWClass:
             exec_info=exec_info
         )
 
-        timings["setcoef"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["setcoef"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
-        
+        print("taugb01")
         taugb01(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["pavel"],
@@ -843,7 +902,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb01"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb01"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb02(
             self.locdict_gt4py["laytrop"],
@@ -886,9 +946,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb02"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
-        tau_major3 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng03,)))
+        timings["taugb02"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
+        tau_major3 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng03,)))
         taugb03a(
             tau_major3,
             self.locdict_gt4py["laytrop"],
@@ -926,8 +988,9 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb03a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["taugb03a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         taugb03b(
             tau_major3,
             self.locdict_gt4py["laytrop"],
@@ -969,9 +1032,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb03b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-    
-        tau_major4 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng04,)))
+        timings["taugb03b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
+        tau_major4 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng04,)))
         taugb04a(
             tau_major4,
             self.locdict_gt4py["laytrop"],
@@ -1009,7 +1074,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb04a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb04a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb04b(
             tau_major4,
@@ -1041,9 +1107,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb04b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
-        tau_major5 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng05,)))
+        timings["taugb04b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
+        tau_major5 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng05,)))
         taugb05a(
             tau_major5,
             self.locdict_gt4py["laytrop"],
@@ -1081,7 +1149,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb05a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb05a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb05b(
             tau_major5,
@@ -1122,7 +1191,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb05b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb05b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
         taugb06(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
@@ -1171,9 +1241,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb06"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb06"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
-        tau_major7 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng07,)))
+        tau_major7 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb07a(
             tau_major7,
             self.locdict_gt4py["laytrop"],
@@ -1215,7 +1287,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb067a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb067a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb07b(
             tau_major7,
@@ -1258,8 +1331,9 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb07b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["taugb07b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         taugb08(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
@@ -1314,9 +1388,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb08"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb08"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
-        tau_major9 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng09,)))
+        tau_major9 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng09,)))
         taugb09a(
             tau_major9,
             self.locdict_gt4py["laytrop"],
@@ -1356,8 +1432,9 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb09a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-    
+        timings["taugb09a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         taugb09b(
             tau_major9,
             self.locdict_gt4py["laytrop"],
@@ -1399,7 +1476,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb09b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb09b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb10(
             self.locdict_gt4py["laytrop"],
@@ -1440,7 +1518,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb10"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb10"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb11(
             self.locdict_gt4py["laytrop"],
@@ -1488,9 +1567,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb11"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb11"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
-        tau_major12 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng12,)))
+        tau_major12 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng12,)))
         taugb12a(
             tau_major12,
             self.locdict_gt4py["laytrop"],
@@ -1527,7 +1608,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb12a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb12a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
         taugb12b(
             tau_major12,
             self.locdict_gt4py["laytrop"],
@@ -1558,9 +1640,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb12b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
-        tau_major13 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng13,)))
+        timings["taugb12b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
+        tau_major13 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng13,)))
         taugb13a(
             tau_major13,
             self.locdict_gt4py["laytrop"],
@@ -1598,7 +1682,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb13a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb13a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb13b(
             tau_major13,
@@ -1643,7 +1728,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb13b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb13b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb14(
             self.locdict_gt4py["laytrop"],
@@ -1684,9 +1770,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["taugb14"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb14"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
-        tau_major15 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng07,)))
+        tau_major15 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb15a(
             tau_major15,
             self.locdict_gt4py["laytrop"],
@@ -1723,7 +1811,8 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb15a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
+        timings["taugb15a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
 
         taugb15b(
             tau_major15,
@@ -1765,9 +1854,11 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb15b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
-        tau_major16 = create_storage_zeros(backend,shape_nlp1,(DTYPE_FLT, (ng07,)))
+        timings["taugb15b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
+        tau_major16 = create_storage_zeros(
+            backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb16a(
             tau_major16,
             self.locdict_gt4py["laytrop"],
@@ -1817,10 +1908,10 @@ class RadLWClass:
             origin=default_origin,
             validate_args=validate,
             exec_info=exec_info,
-            
-        )
-        timings["taugb16a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
 
+        )
+        timings["taugb16a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
         taugb16b(
             tau_major16,
             self.locdict_gt4py["laytrop"],
@@ -1865,8 +1956,9 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["taugb16b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["taugb16b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         combine_optical_depth(
             self.NGB,
             self.locdict_gt4py["ib"],
@@ -1877,8 +1969,9 @@ class RadLWClass:
             origin=default_origin,
             validate_args=validate,
         )
-        timings["combine_optical_depth"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["combine_optical_depth"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         rtrnmc_a_forward(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["secdiff"],
@@ -1979,8 +2072,9 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info,
         )
-        timings["rtrnmc_a"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["rtrnmc_a"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         rtrnmc_b(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["delp"],
@@ -2026,6 +2120,7 @@ class RadLWClass:
             validate_args=validate,
             exec_info=exec_info
         )
-        timings["rtrnmc_b"] = exec_info["run_end_time"] - exec_info["run_start_time"]
-        
+        timings["rtrnmc_b"] = exec_info["run_end_time"] - \
+            exec_info["run_start_time"]
+
         return timings
