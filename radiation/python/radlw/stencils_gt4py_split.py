@@ -124,6 +124,8 @@ def set_ids(specparm,fs,fac0,fac1,ind):
 
     return fac00, fac10, fac20, fac01, fac11, fac21, id00, id01, id10, id11, id20, id21
 
+
+
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -4677,4 +4679,3 @@ def rtrnmc_b(
         hlwc = (fnet[0, 0, -1] - fnet) * rfdelp
         if lhlw0:
             hlw0 = (fnetc[0, 0, -1] - fnetc) * rfdelp
-

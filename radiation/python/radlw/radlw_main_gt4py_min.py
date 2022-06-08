@@ -905,6 +905,7 @@ class RadLWClass:
         timings["taugb01"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb02")
         taugb02(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["pavel"],
@@ -948,7 +949,8 @@ class RadLWClass:
         )
         timings["taugb02"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
-
+        
+        print("taugb03")
         tau_major3 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng03,)))
         taugb03a(
@@ -1034,7 +1036,8 @@ class RadLWClass:
         )
         timings["taugb03b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
-
+        
+        print("taugb04")
         tau_major4 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng04,)))
         taugb04a(
@@ -1110,6 +1113,7 @@ class RadLWClass:
         timings["taugb04b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb05")
         tau_major5 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng05,)))
         taugb05a(
@@ -1193,6 +1197,8 @@ class RadLWClass:
         )
         timings["taugb05b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
+        
+        print("taugb06")
         taugb06(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
@@ -1244,6 +1250,7 @@ class RadLWClass:
         timings["taugb06"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb07")
         tau_major7 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb07a(
@@ -1334,6 +1341,7 @@ class RadLWClass:
         timings["taugb07b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb08")
         taugb08(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["coldry"],
@@ -1391,6 +1399,7 @@ class RadLWClass:
         timings["taugb08"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb09")
         tau_major9 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng09,)))
         taugb09a(
@@ -1479,6 +1488,7 @@ class RadLWClass:
         timings["taugb09b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb10")
         taugb10(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
@@ -1521,6 +1531,7 @@ class RadLWClass:
         timings["taugb10"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb11")
         taugb11(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
@@ -1570,6 +1581,7 @@ class RadLWClass:
         timings["taugb11"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb12")
         tau_major12 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng12,)))
         taugb12a(
@@ -1643,6 +1655,7 @@ class RadLWClass:
         timings["taugb12b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb13")
         tau_major13 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng13,)))
         taugb13a(
@@ -1731,6 +1744,7 @@ class RadLWClass:
         timings["taugb13b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb14")
         taugb14(
             self.locdict_gt4py["laytrop"],
             self.locdict_gt4py["colamt"],
@@ -1773,6 +1787,7 @@ class RadLWClass:
         timings["taugb14"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb15")
         tau_major15 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb15a(
@@ -1857,6 +1872,7 @@ class RadLWClass:
         timings["taugb15b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("taugb16")
         tau_major16 = create_storage_zeros(
             backend, shape_nlp1, (DTYPE_FLT, (ng07,)))
         taugb16a(
@@ -1959,6 +1975,7 @@ class RadLWClass:
         timings["taugb16b"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("combine_optical_depth")
         combine_optical_depth(
             self.NGB,
             self.locdict_gt4py["ib"],
@@ -1972,6 +1989,7 @@ class RadLWClass:
         timings["combine_optical_depth"] = exec_info["run_end_time"] - \
             exec_info["run_start_time"]
 
+        print("rtrnmc")
         rtrnmc_a_forward(
             self.locdict_gt4py["semiss"],
             self.locdict_gt4py["secdiff"],
@@ -2124,3 +2142,182 @@ class RadLWClass:
             exec_info["run_start_time"]
 
         return timings
+
+    def test_stencils(self,rank):
+        try:
+            print("Running firstloop")
+            firstloop(
+                self.indict_gt4py["plyr"],
+                self.indict_gt4py["plvl"],
+                self.indict_gt4py["tlyr"],
+                self.indict_gt4py["tlvl"],
+                self.indict_gt4py["qlyr"],
+                self.indict_gt4py["olyr"],
+                self.indict_gt4py["gasvmr"],
+                self.indict_gt4py["clouds"],
+                self.indict_gt4py["icsdlw"],
+                self.indict_gt4py["faerlw"],
+                self.indict_gt4py["semis"],
+                self.indict_gt4py["tsfg"],
+                self.indict_gt4py["dz"],
+                self.indict_gt4py["delp"],
+                self.indict_gt4py["de_lgth"],
+                self.locdict_gt4py["cldfrc"],
+                self.locdict_gt4py["pavel"],
+                self.locdict_gt4py["tavel"],
+                self.locdict_gt4py["delp"],
+                self.locdict_gt4py["dz"],
+                self.locdict_gt4py["h2ovmr"],
+                self.locdict_gt4py["o3vmr"],
+                self.locdict_gt4py["coldry"],
+                self.locdict_gt4py["colbrd"],
+                self.locdict_gt4py["colamt"],
+                self.locdict_gt4py["wx"],
+                self.locdict_gt4py["tauaer"],
+                self.locdict_gt4py["semiss0"],
+                self.locdict_gt4py["semiss"],
+                self.locdict_gt4py["tem11"],
+                self.locdict_gt4py["tem22"],
+                self.locdict_gt4py["tem00"],
+                self.locdict_gt4py["summol"],
+                self.locdict_gt4py["pwvcm"],
+                self.locdict_gt4py["clwp"],
+                self.locdict_gt4py["relw"],
+                self.locdict_gt4py["ciwp"],
+                self.locdict_gt4py["reiw"],
+                self.locdict_gt4py["cda1"],
+                self.locdict_gt4py["cda2"],
+                self.locdict_gt4py["cda3"],
+                self.locdict_gt4py["cda4"],
+                self.locdict_gt4py["secdiff"],
+                self.A0,
+                self.A1,
+                self.A2,
+                domain=shape_nlp1,
+                origin=default_origin,
+                validate_args=validate,
+            )
+        except Exception as e:
+            print(e)
+            print("Error in firstloop")
+        
+        try:
+            print("load random numbers")
+            self._load_random_numbers(rank)
+        except Exception as e:
+            print(e)
+            print("Error in load random numbers")
+        
+        try:
+            print("Running setcoef")
+            setcoef(
+                self.locdict_gt4py["pavel"],
+                self.locdict_gt4py["tavel"],
+                self.indict_gt4py["tlvl"],
+                self.indict_gt4py["tsfg"],
+                self.locdict_gt4py["h2ovmr"],
+                self.locdict_gt4py["colamt"],
+                self.locdict_gt4py["coldry"],
+                self.locdict_gt4py["colbrd"],
+                self.lookupdict_gt4py["totplnk"],
+                self.lookupdict_gt4py["pref"],
+                self.lookupdict_gt4py["preflog"],
+                self.lookupdict_gt4py["tref"],
+                self.lookupdict_gt4py["chi_mls"],
+                self.lookupdict_gt4py["delwave"],
+                self.locdict_gt4py["laytrop"],
+                self.locdict_gt4py["pklay"],
+                self.locdict_gt4py["pklev"],
+                self.locdict_gt4py["jp"],
+                self.locdict_gt4py["jt"],
+                self.locdict_gt4py["jt1"],
+                self.locdict_gt4py["rfrate"],
+                self.locdict_gt4py["fac00"],
+                self.locdict_gt4py["fac01"],
+                self.locdict_gt4py["fac10"],
+                self.locdict_gt4py["fac11"],
+                self.locdict_gt4py["selffac"],
+                self.locdict_gt4py["selffrac"],
+                self.locdict_gt4py["indself"],
+                self.locdict_gt4py["forfac"],
+                self.locdict_gt4py["forfrac"],
+                self.locdict_gt4py["indfor"],
+                self.locdict_gt4py["minorfrac"],
+                self.locdict_gt4py["scaleminor"],
+                self.locdict_gt4py["scaleminorn2"],
+                self.locdict_gt4py["indminor"],
+                self.locdict_gt4py["tzint"],
+                self.locdict_gt4py["stempint"],
+                self.locdict_gt4py["tavelint"],
+                self.locdict_gt4py["indlay"],
+                self.locdict_gt4py["indlev"],
+                self.locdict_gt4py["tlyrfr"],
+                self.locdict_gt4py["tlvlfr"],
+                self.locdict_gt4py["jp1"],
+                self.locdict_gt4py["plog"],
+                domain=shape_nlp1,
+                origin=default_origin,
+                validate_args=validate,
+            )
+        except Exception as e:
+            print(e)
+            print("Error in setcoef")
+        
+        try:
+            print("Running taugb01")
+            taugb01(
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colbrd"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["minorfrac"],
+            self.locdict_gt4py["scaleminorn2"],
+            self.locdict_gt4py["indminor"],
+            self.locdict_gt4py["fracs"],
+            self.locdict_gt4py["taug"],
+            self.lookupdict_gt4py1["absa"],
+            self.lookupdict_gt4py1["absb"],
+            self.lookupdict_gt4py1["selfref"],
+            self.lookupdict_gt4py1["forref"],
+            self.lookupdict_gt4py1["fracrefa"],
+            self.lookupdict_gt4py1["fracrefb"],
+            self.lookupdict_gt4py1["ka_mn2"],
+            self.lookupdict_gt4py1["kb_mn2"],
+            self.locdict_gt4py["ind0"],
+            self.locdict_gt4py["ind0p"],
+            self.locdict_gt4py["ind1"],
+            self.locdict_gt4py["ind1p"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            self.locdict_gt4py["indm"],
+            self.locdict_gt4py["indmp"],
+            self.locdict_gt4py["pp"],
+            self.locdict_gt4py["corradj"],
+            self.locdict_gt4py["scalen2"],
+            self.locdict_gt4py["tauself"],
+            self.locdict_gt4py["taufor"],
+            self.locdict_gt4py["taun2"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+            exec_info=exec_info
+        )
+        except Exception as e:
+            print(e)
+            print("Error in taugb01")
+        
