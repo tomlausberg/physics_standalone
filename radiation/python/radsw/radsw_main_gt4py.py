@@ -6,13 +6,14 @@ import sys
 import time
 import warnings
 
+from config import *
+
 sys.path.insert(0, "..")
 from radsw_param import ntbmx, NGB, nbandssw, ngs
 from radphysparam import iswmode, iswrgas, iswrate, iswcice, iswcliq
 from phys_const import con_amd, con_amw, con_amo3, con_g, con_cp, con_avgd
 from util import *
-from config import *
-from stencils_sw_gt4py import *
+from stencils_sw_gt4py_split import *
 
 
 class RadSWClass:
@@ -617,7 +618,7 @@ class RadSWClass:
             origin=default_origin,
             validate_args=validate,
         )
-
+        
         if do_subtest:
             outvars_firstloop = {
                 "cosz1": {"fortran_shape": (npts,)},
@@ -766,7 +767,7 @@ class RadSWClass:
             )
 
             compare_data(outdict_cldprop, valdict_cldprop)
-
+        """
         setcoef(
             self.locdict_gt4py["pavel"],
             self.locdict_gt4py["tavel"],
@@ -956,7 +957,7 @@ class RadSWClass:
             origin=default_origin,
             validate_args=validate,
         )
-
+        
         taumol18(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
@@ -1681,7 +1682,7 @@ class RadSWClass:
             self.locdict_gt4py["flxd0"],
             self.heatfac,
         )
-
+        """
         end = time.time()
         print(f"Elapsed time = {end-start}")
 
