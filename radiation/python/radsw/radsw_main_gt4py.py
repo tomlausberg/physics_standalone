@@ -657,7 +657,7 @@ class RadSWClass:
                 SW_SERIALIZED_DIR, "swrad", rank, 0, "firstloop", outvars_firstloop
             )
 
-            compare_data(outdict_firstloop, valdict_firstloop)
+            compare_data(outdict_firstloop, valdict_firstloop, explicit=True, blocking=False)
 
         self._load_random_numbers(rank)
 
@@ -767,7 +767,7 @@ class RadSWClass:
                 SW_SERIALIZED_DIR, "swrad", rank, 0, "cldprop", outvars_cldprop
             )
 
-            compare_data(outdict_cldprop, valdict_cldprop)
+            compare_data(outdict_cldprop, valdict_cldprop, explicit=True, blocking=False)
         """
         setcoef(
             self.locdict_gt4py["pavel"],
@@ -1699,4 +1699,4 @@ class RadSWClass:
             self.outvars,
         )
 
-        compare_data(outdict_final, valdict_final)
+        compare_data(outdict_final, valdict_final, explicit=True, blocking=False)

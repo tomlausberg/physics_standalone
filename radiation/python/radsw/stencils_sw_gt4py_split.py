@@ -711,6 +711,7 @@ def cldprop_calc_absorption_coeffs(
                                 ssaice[0, 0, 0][ib8] = tauice[0, 0, 0][ib8] * ssacoice
                                 asyice[0, 0, 0][ib8] = ssaice[0, 0, 0][ib8] * asycoice
 
+"""
 @stencil(backend=backend, rebuild=rebuild, externals={"stpfac": stpfac})
 def setcoef(
     pavel: FIELD_FLT,
