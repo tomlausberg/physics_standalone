@@ -474,7 +474,7 @@ def save_gt4py_dict_as_npz(data, filename, metadata={}):
     data_numpy["metadata"] = metadata
     np.savez(filename, **data_numpy)
 
-def save_gt4py_dict(data, filename=None, metadata={}):
+def save_gt4py_dict(data, filename=None, save_directory=None, metadata={}):
     """Save gt4py data as npz file with metadata in a separate json file
 
     Args:
@@ -489,11 +489,9 @@ def save_gt4py_dict(data, filename=None, metadata={}):
 
     
     if filename is None:
-        filename = f"split_{metadata['snapshot']}_{metadata['backend']}_{metadata['rank']}"
-
+        filename = f"{metadata['snapshot']}_{metadata['backend']}_{metadata['rank']}"
+    if save_directory is not None:
+        filename = os.path.join(save_directory, filename)
+    
     data_numpy = view_gt4py_storage(data)
     np.savez_compressed(filename+".npz", **data_numpy)
-
-    #save metadata in json file
-    with open(filename+".json", "w") as f:
-        json.dump(metadata, f)

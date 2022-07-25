@@ -578,8 +578,12 @@ class RadSWClass:
             "split": True,
             "snapshot": 1
         }
+        output_dir = os.join(os.getenv("SCRATCH"),"sw_test/test/"+str(rank))
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
         out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
-        save_gt4py_dict(out_dict, metadata=metadata)
+        save_gt4py_dict(out_dict, filename="sw_split_1.npz", save_directory=output_dir, metadata=metadata)
         start = time.time()
         firstloop(
             self.indict_gt4py["plyr"],
@@ -631,7 +635,7 @@ class RadSWClass:
         )
         out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
         metadata.update({"snapshot": 2})
-        save_gt4py_dict(out_dict, metadata=metadata)
+        save_gt4py_dict(out_dict, filename="sw_split_2.npz", save_directory=output_dir, metadata=metadata)
 
         end = time.time()
 
