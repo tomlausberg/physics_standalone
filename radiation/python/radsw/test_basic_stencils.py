@@ -18,7 +18,7 @@ else:
 
 
 from config import *
-print(f"Running shortwave validation with {backend} backend")
+print(f"Running basic test with {backend} backend")
 
 from radsw.radsw_main_gt4py import RadSWClass
 from radphysparam import icldflg
@@ -28,6 +28,13 @@ import serialbox as ser
 me = 0
 iovrsw = 1
 isubcsw = 2
+
+
+rsw = RadSWClass(me, iovrsw, isubcsw, icldflg)
+
+rsw.create_input_data(me)
+
+
 
 for rank in range(2):
     serializer = ser.Serializer(
@@ -41,4 +48,4 @@ for rank in range(2):
     rsw = RadSWClass(rank, iovrsw, isubcsw, icldflg)
     if nday > 0:
         rsw.create_input_data(rank)
-        rsw.swrad(rank, do_subtest=True)
+        rsw.swrad_split(rank)

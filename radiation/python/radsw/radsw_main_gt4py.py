@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import warnings
+import copy
 
 from config import *
 
@@ -13,8 +14,8 @@ from radsw_param import ntbmx, NGB, nbandssw, ngs
 from radphysparam import iswmode, iswrgas, iswrate, iswcice, iswcliq
 from phys_const import con_amd, con_amw, con_amo3, con_g, con_cp, con_avgd
 from util import *
-from stencils_sw_gt4py_split import *
 
+validate = False
 
 class RadSWClass:
     VTAGSW = "NCEP SW v5.1  Nov 2012 -RRTMG-SW v3.8"
@@ -229,12 +230,12 @@ class RadSWClass:
             os.path.join(FORTRANDATA_DIR, "SW"), "swrad", rank, 0, True, invars
         )
         if rank == 1:  # serialized idxday data has a spurious value on rank 1
+            # For verification of split stencils
             indict_gt4py = numpy_dict_to_gt4py_dict(
                 self._indict, invars, rank1_flag=True
             )
         else:
             indict_gt4py = numpy_dict_to_gt4py_dict(self._indict, invars)
-
         outvars = {
             "upfxc_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
             "dnfxc_t": {"shape": shape_2D, "type": DTYPE_FLT, "fortran_shape": (npts,)},
@@ -568,7 +569,77 @@ class RadSWClass:
             cdfunc, backend, shape_nlp1, type_ngptsw
         )
 
+
+    def swrad_split(self, rank):
+        from stencils_sw_gt4py_split import firstloop
+        print("Running basic test")
+        metadata={
+            "backend": backend,
+            "split": True,
+            "snapshot": 1
+        }
+        out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
+        save_gt4py_dict(out_dict, metadata=metadata)
+        start = time.time()
+        firstloop(
+            self.indict_gt4py["plyr"],
+            self.indict_gt4py["plvl"],
+            self.indict_gt4py["tlyr"],
+            self.indict_gt4py["tlvl"],
+            self.indict_gt4py["qlyr"],
+            self.indict_gt4py["olyr"],
+            self.indict_gt4py["gasvmr"],
+            self.indict_gt4py["clouds"],
+            self.indict_gt4py["faersw"],
+            self.indict_gt4py["sfcalb"],
+            self.indict_gt4py["dz"],
+            self.indict_gt4py["delp"],
+            self.indict_gt4py["de_lgth"],
+            self.indict_gt4py["coszen"],
+            self.indict_gt4py["idxday"],
+            self.indict_gt4py["solcon"],
+            self.locdict_gt4py["cosz1"],
+            self.locdict_gt4py["sntz1"],
+            self.locdict_gt4py["ssolar"],
+            self.locdict_gt4py["albbm"],
+            self.locdict_gt4py["albdf"],
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["tavel"],
+            self.locdict_gt4py["h2ovmr"],
+            self.locdict_gt4py["o3vmr"],
+            self.locdict_gt4py["coldry"],
+            self.locdict_gt4py["temcol"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["tauae"],
+            self.locdict_gt4py["ssaae"],
+            self.locdict_gt4py["asyae"],
+            self.locdict_gt4py["cfrac"],
+            self.locdict_gt4py["cliqp"],
+            self.locdict_gt4py["reliq"],
+            self.locdict_gt4py["cicep"],
+            self.locdict_gt4py["reice"],
+            self.locdict_gt4py["cdat1"],
+            self.locdict_gt4py["cdat2"],
+            self.locdict_gt4py["cdat3"],
+            self.locdict_gt4py["cdat4"],
+            self.locdict_gt4py["zcf0"],
+            self.locdict_gt4py["zcf1"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+        out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
+        metadata.update({"snapshot": 2})
+        save_gt4py_dict(out_dict, metadata=metadata)
+
+        end = time.time()
+
     def swrad(self, rank, do_subtest=False):
+        from stencils_sw_gt4py_split import (
+            firstloop
+        )
+
         start = time.time()
         firstloop(
             self.indict_gt4py["plyr"],
@@ -1686,7 +1757,7 @@ class RadSWClass:
         """
         end = time.time()
         print(f"Elapsed time = {end-start}")
-
+        """
         outdict_final = convert_gt4py_output_for_validation(
             self.outdict_gt4py, self.outvars
         )
@@ -1700,3 +1771,4 @@ class RadSWClass:
         )
 
         compare_data(outdict_final, valdict_final, explicit=True, blocking=False)
+        """

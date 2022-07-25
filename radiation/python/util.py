@@ -4,6 +4,7 @@ import xarray as xr
 from config import *
 from copy import deepcopy
 
+import json
 import serialbox as ser
 import os
 
@@ -109,7 +110,7 @@ def searr_to_scalar(data_dict):
 
 # Transform a dictionary of numpy arrays into a dictionary of gt4py
 # storages of shape (iie-iis+1, jje-jjs+1, kke-kks+1)
-def numpy_dict_to_gt4py_dict(np_dict, vars, dims, rank1_flag=False):
+def numpy_dict_to_gt4py_dict(np_dict, vars, dims=None, rank1_flag=False):
     """convert dictionary of numpy arrays from serialized data to GT4Py storages
 
     Args:
@@ -119,7 +120,9 @@ def numpy_dict_to_gt4py_dict(np_dict, vars, dims, rank1_flag=False):
     Returns:
         dict: dictionary of variable names and storages
     """
-
+    if dims is None:
+        dims = Dimensions(npts, nlay, nlp1)
+    
     gt4py_dict = {}
 
     for var in vars.keys():
@@ -272,23 +275,27 @@ def compare_data(data, ref_data, explicit=True, blocking=True):
     flag = True
 
     for var in data:
-
         if not np.allclose(
             data[var], ref_data[var], rtol=1e-11, atol=1.0e-13, equal_nan=True
         ):
 
             wrong.append(var)
             flag = False
+            if explicit:
+                number_of_differences = np.sum(data[var] == ref_data[var])
+                l2_norm = np.linalg.norm(data[var] - ref_data[var])
+                print(f"Unsuccessful: {var}, {number_of_differences}/{data[var].size}. Norm: {l2_norm}")
 
         else:
 
             if explicit:
                 print(f"Successfully validated {var}!")
 
+
     if blocking:
         assert flag, f"Output data does not match reference data for field {wrong}!"
     else:
-        if not flag:
+        if not flag and not explicit:
             print(
                 f"Output data does not match reference data for field {wrong}!")
 
@@ -433,3 +440,60 @@ def scale_dataset(data, scale_factor: int):
 
     return scaled_data
     #done
+
+
+def compare_data_gt4py(data, ref_data, explicit=False,blocking=True):
+    """Compare data with reference data using GT4Py
+
+    Args:
+        data (dict): gt4py data to compare
+        ref_data (dict): gt4py reference data
+        data_shape (dict): name of variable to compare
+        blocking (bool, optional): if True, raise error if data does not match. Defaults to True.
+        explicit (bool, optional): if True, print error message. Defaults to False.
+
+    Raises:
+        AssertionError: if blocking is True and data does not match reference data
+    """
+    data_numpy = view_gt4py_storage(data)
+    ref_data_numpy = view_gt4py_storage(ref_data)    
+    compare_data(data_numpy, ref_data_numpy, explicit, blocking)
+
+def save_gt4py_dict_as_npz(data, filename, metadata={}):
+    """Save gt4py data as npz file
+
+    Args:
+        data (dict): gt4py data to save
+        filename (str): name of file to save to
+        metadata (dict, optional): metadata to save with file. Defaults to {}.
+    """
+    data_numpy = view_gt4py_storage(data)
+    
+    metadata.update({"backend": backend, "snapshot" : 0})
+    
+    data_numpy["metadata"] = metadata
+    np.savez(filename, **data_numpy)
+
+def save_gt4py_dict(data, filename=None, metadata={}):
+    """Save gt4py data as npz file with metadata in a separate json file
+
+    Args:
+        data (dict): gt4py data to save
+        filename (str, optional): name of file to save to. Defaults to None.
+        metadata (dict, optional): metadata to save with file. Defaults to {}.
+    """
+    metadata.setdefault("backend", backend)
+    metadata.setdefault("snapshot", 0)
+    metadata.setdefault("rank", 0)
+    
+
+    
+    if filename is None:
+        filename = f"split_{metadata['snapshot']}_{metadata['backend']}_{metadata['rank']}"
+
+    data_numpy = view_gt4py_storage(data)
+    np.savez_compressed(filename+".npz", **data_numpy)
+
+    #save metadata in json file
+    with open(filename+".json", "w") as f:
+        json.dump(metadata, f)
