@@ -489,9 +489,9 @@ def save_gt4py_dict(data, filename=None, save_directory=None, metadata={}):
 
     
     if filename is None:
-        filename = f"{metadata['snapshot']}_{metadata['backend']}_{metadata['rank']}"
+        filename = f"{metadata['snapshot']}_{metadata['backend']}_{metadata['rank']}.npz"
     if save_directory is not None:
         filename = os.path.join(save_directory, filename)
     
     data_numpy = view_gt4py_storage(data)
-    np.savez_compressed(filename+".npz", **data_numpy)
+    np.savez_compressed(filename, **data_numpy)
