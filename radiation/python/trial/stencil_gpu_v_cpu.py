@@ -6,10 +6,11 @@ from gt4py.gtscript import (
     Field
 )
 
+
 import numpy as np
 import os
 
-from radiation.python.config import FIELD_2D, FIELD_2DBOOL
+from config import FIELD_2D, FIELD_2DBOOL
 
 backend = os.getenv("BACKEND")
 

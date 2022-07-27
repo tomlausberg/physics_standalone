@@ -1,21 +1,54 @@
+from stencil_gpu_v_cpu import test_masking
 import gt4py.storage as gt_storage
 import numpy as np
 import os
-from radiation.python.config import npts
+import sys
 
-from radiation.python.trial.stencil_gpu_v_cpu import test_masking
+sys.path.insert(0, "..")
+
+from config import DTYPE_BOOL, DTYPE_FLT
+from util import numpy_dict_to_gt4py_dict
+
+npts = 24
 
 backend = os.getenv("BACKEND")
-field_shape = (128,128,79)
+field_shape = (128, 128, 79)
 npts_shape = (npts,)
 
+storage_vars = {
+    "mask": {"shape": (npts,), "type": DTYPE_BOOL},
+    "infield1": {"shape": (npts,), "type": DTYPE_FLT},
+    "infield2": {"shape": (npts,), "type": DTYPE_FLT},
+    "outfield": {"shape": (npts,), "type": DTYPE_FLT},
+}
 
-infield1_np = np.ones(npts_shape, dtype=np.float64)
-infield2_np = np.full(npts_shape, 2,dtype=np.float64)
-infield1 = gt_storage.create_storage_from_array(infield1_np, backend, npts_shape, np.float64)
-infield2 = gt_storage.create_storage_from_array(infield2_np, backend, npts_shape, np.float64)
+np_dict = {
+    "mask": np.array([True if i < npts / 2 else False for i in range(npts)]),
+    "infield1": np.full(npts_shape, 1, dtype=np.float64),
+    "infield2": np.full(npts_shape, 2, dtype=np.float64),
+    "outfield": np.full(npts_shape, 0, dtype=np.float64),
+}
 
-outfield = gt_storage.create_storage_zeros(backend, field_shape, np.float64)
+storage_dict = numpy_dict_to_gt4py_dict(np_dict, storage_vars)
 
-test_masking(infield1, infield2, outfield)
+# mask_np = np.array([True if i < npts / 2 else False for i in range(npts)])
+# infield1_np = np.ones(npts_shape, dtype=np.float64)
+# infield2_np = np.full(npts_shape, 2, dtype=np.float64)
 
+# mask = gt_storage.from_array(
+#     mask_np, shape=npts_shape, backend=backend, default_origin=(0,), dtype=np.float64)
+# infield1 = gt_storage.from_array(
+#     infield1_np, shape=npts_shape, backend=backend, default_origin=(0,), dtype=np.float64)
+# infield2 = gt_storage.from_array(
+#     infield2_np, shape=npts_shape, backend=backend, default_origin=(0,), dtype=np.float64)
+
+# outfield = gt_storage.zeros(
+#     backend=backend, shape=npts_shape, default_origin=(0,), dtype=np.float64)
+
+test_masking(storage_dict["mask"], storage_dict["infield1"],
+             storage_dict["infield2"], storage_dict["outfield"])
+
+outfield_np = np.squeeze(storage_dict["outfield"].view(np.ndarray))
+mask = np_dict["mask"]
+for i in range(npts):
+    print(f"{i}: {mask[i]}\t{outfield_np[i]}")
