@@ -4,7 +4,7 @@ import numpy as np
 import os
 import sys
 
-sys.path.insert(0, "..")
+sys.path.append('../../python')
 
 from config import DTYPE_BOOL, DTYPE_FLT
 from util import numpy_dict_to_gt4py_dict
@@ -31,6 +31,22 @@ np_dict = {
 
 storage_dict = numpy_dict_to_gt4py_dict(np_dict, storage_vars)
 
+for k, v in storage_dict.items():
+    try:
+        print(f"{k}: {storage_dict[k]._sync_state.state}")
+    except:
+        print(f"{k}: No sync state")
+    v.synchronize()
+
+for k, v in storage_dict.items():
+    try:
+        print(f"{k}: {storage_dict[k]._sync_state.state}")
+    except:
+        print(f"{k}: No sync state")
+
+
+
+
 # mask_np = np.array([True if i < npts / 2 else False for i in range(npts)])
 # infield1_np = np.ones(npts_shape, dtype=np.float64)
 # infield2_np = np.full(npts_shape, 2, dtype=np.float64)
@@ -48,7 +64,17 @@ storage_dict = numpy_dict_to_gt4py_dict(np_dict, storage_vars)
 test_masking(storage_dict["mask"], storage_dict["infield1"],
              storage_dict["infield2"], storage_dict["outfield"])
 
+for k, v in storage_dict.items():
+    try:
+        print(f"{k}: {storage_dict[k]._sync_state.state}")
+        v.synchronize()
+    except:
+        print(f"{k}: No sync state")
+
+
+infield1_np = np_dict["infield1"]
+infield1_gt = np.squeeze(storage_dict["infield1"].view(np.ndarray))
 outfield_np = np.squeeze(storage_dict["outfield"].view(np.ndarray))
 mask = np_dict["mask"]
 for i in range(npts):
-    print(f"{i}: {mask[i]}\t{outfield_np[i]}")
+    print(f"{i}:\t{infield1_np[i]}\t{infield1_gt[i]}\t{mask[i]}\t{outfield_np[i]}")
