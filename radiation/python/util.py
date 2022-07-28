@@ -495,3 +495,14 @@ def save_gt4py_dict(data, filename=None, save_directory=None, metadata={}):
     
     data_numpy = view_gt4py_storage(data)
     np.savez_compressed(filename, **data_numpy)
+
+def sync_gt4py_dict(gt4py_dict):
+    """Synchronizes dict of gt4py storages if they are ExplicitlySyncedGPUStorages.
+    Args:
+        gt4py_dict (dict): gt4py storages to sync
+    """
+    for var in gt4py_dict:
+        try:
+            gt4py_dict[var].synchronize()
+        except AttributeError:
+            pass

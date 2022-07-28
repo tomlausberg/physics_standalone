@@ -583,10 +583,12 @@ class RadSWClass:
             os.makedirs(output_dir)
         
         out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
-        for k,v in out_dict.items():
-            if not v._is_clean():
-                print(f"{k} is dirty: {v._sync_state.state}")
-            v.synchronize()
+        for v in out_dict.values():
+            try:
+                v.synchronize()
+            except AttributeError:
+                pass
+
         save_gt4py_dict(out_dict, filename="sw_split_1.npz", save_directory=output_dir, metadata=metadata)
         start = time.time()
         firstloop(
@@ -650,8 +652,12 @@ class RadSWClass:
 
     def swrad(self, rank, do_subtest=False):
         from stencils_sw_gt4py_split import (
-            firstloop
+            firstloop,
+            cldprop_calc_absorption_coeffs,
+            cldprop
         )
+        sync_gt4py_dict(self.indict_gt4py)
+        sync_gt4py_dict(self.locdict_gt4py)
 
         start = time.time()
         firstloop(
@@ -734,6 +740,7 @@ class RadSWClass:
                 "zcf1": {"fortran_shape": (npts,)},
             }
 
+            sync_gt4py_dict(self.locdict_gt4py)
             outdict_firstloop = convert_gt4py_output_for_validation(
                 self.locdict_gt4py, outvars_firstloop
             )
@@ -843,7 +850,7 @@ class RadSWClass:
                 "asycw": {"fortran_shape": (npts, nlay, nbdsw)},
                 "cldfrc": {"fortran_shape": (npts, nlay)},
             }
-
+            sync_gt4py_dict(self.locdict_gt4py)
             outdict_cldprop = convert_gt4py_output_for_validation(
                 self.locdict_gt4py, outvars_cldprop
             )
