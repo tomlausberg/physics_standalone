@@ -578,11 +578,15 @@ class RadSWClass:
             "split": True,
             "snapshot": 1
         }
-        output_dir = os.join(os.getenv("SCRATCH"),"sw_test/test/"+str(rank))
+        output_dir = os.path.join(os.getenv("SCRATCH"),"sw_test/test/"+str(rank))
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
         out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
+        for k,v in out_dict.items():
+            if not v._is_clean():
+                print(f"{k} is dirty: {v._sync_state.state}")
+            v.synchronize()
         save_gt4py_dict(out_dict, filename="sw_split_1.npz", save_directory=output_dir, metadata=metadata)
         start = time.time()
         firstloop(
@@ -634,6 +638,11 @@ class RadSWClass:
             validate_args=validate,
         )
         out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
+        for k,v in out_dict.items():
+            if not v._is_clean():
+                print(f"{k} is dirty: {v._sync_state.state}")
+            v.synchronize()
+
         metadata.update({"snapshot": 2})
         save_gt4py_dict(out_dict, filename="sw_split_2.npz", save_directory=output_dir, metadata=metadata)
 
