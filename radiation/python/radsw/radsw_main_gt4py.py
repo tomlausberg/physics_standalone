@@ -1,4 +1,3 @@
-from attr.setters import convert
 import numpy as np
 import xarray as xr
 import os
@@ -15,6 +14,11 @@ from radphysparam import iswmode, iswrgas, iswrate, iswcice, iswcliq
 from phys_const import con_amd, con_amw, con_amo3, con_g, con_cp, con_avgd
 from util import *
 
+IS_SPLIT_STENCIL = (os.getenv("IS_SPLIT_STENCIL") == "True") if ("IS_SPLIT_STENCIL" in os.environ) else False
+if IS_SPLIT_STENCIL:
+    import stencils_sw_gt4py_split as stencils_split
+else:
+    import stencils_sw_gt4py as stencils
 validate = False
 
 class RadSWClass:
@@ -570,97 +574,14 @@ class RadSWClass:
         )
 
 
-    def swrad_split(self, rank):
-        from stencils_sw_gt4py_split import firstloop
-        print("Running basic test")
-        metadata={
-            "backend": backend,
-            "split": True,
-            "snapshot": 1
-        }
-        output_dir = os.path.join(os.getenv("SCRATCH"),"sw_test/test/"+str(rank))
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+    def swrad_split(self, rank, do_subtest=False):
         
-        out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
-        for v in out_dict.values():
-            try:
-                v.synchronize()
-            except AttributeError:
-                pass
-
-        save_gt4py_dict(out_dict, filename="sw_split_1.npz", save_directory=output_dir, metadata=metadata)
-        start = time.time()
-        firstloop(
-            self.indict_gt4py["plyr"],
-            self.indict_gt4py["plvl"],
-            self.indict_gt4py["tlyr"],
-            self.indict_gt4py["tlvl"],
-            self.indict_gt4py["qlyr"],
-            self.indict_gt4py["olyr"],
-            self.indict_gt4py["gasvmr"],
-            self.indict_gt4py["clouds"],
-            self.indict_gt4py["faersw"],
-            self.indict_gt4py["sfcalb"],
-            self.indict_gt4py["dz"],
-            self.indict_gt4py["delp"],
-            self.indict_gt4py["de_lgth"],
-            self.indict_gt4py["coszen"],
-            self.indict_gt4py["idxday"],
-            self.indict_gt4py["solcon"],
-            self.locdict_gt4py["cosz1"],
-            self.locdict_gt4py["sntz1"],
-            self.locdict_gt4py["ssolar"],
-            self.locdict_gt4py["albbm"],
-            self.locdict_gt4py["albdf"],
-            self.locdict_gt4py["pavel"],
-            self.locdict_gt4py["tavel"],
-            self.locdict_gt4py["h2ovmr"],
-            self.locdict_gt4py["o3vmr"],
-            self.locdict_gt4py["coldry"],
-            self.locdict_gt4py["temcol"],
-            self.locdict_gt4py["colamt"],
-            self.locdict_gt4py["colmol"],
-            self.locdict_gt4py["tauae"],
-            self.locdict_gt4py["ssaae"],
-            self.locdict_gt4py["asyae"],
-            self.locdict_gt4py["cfrac"],
-            self.locdict_gt4py["cliqp"],
-            self.locdict_gt4py["reliq"],
-            self.locdict_gt4py["cicep"],
-            self.locdict_gt4py["reice"],
-            self.locdict_gt4py["cdat1"],
-            self.locdict_gt4py["cdat2"],
-            self.locdict_gt4py["cdat3"],
-            self.locdict_gt4py["cdat4"],
-            self.locdict_gt4py["zcf0"],
-            self.locdict_gt4py["zcf1"],
-            domain=shape_nlp1,
-            origin=default_origin,
-            validate_args=validate,
-        )
-        out_dict = { **self.indict_gt4py, **self.locdict_gt4py }
-        for k,v in out_dict.items():
-            if not v._is_clean():
-                print(f"{k} is dirty: {v._sync_state.state}")
-            v.synchronize()
-
-        metadata.update({"snapshot": 2})
-        save_gt4py_dict(out_dict, filename="sw_split_2.npz", save_directory=output_dir, metadata=metadata)
-
-        end = time.time()
-
-    def swrad(self, rank, do_subtest=False):
-        from stencils_sw_gt4py_split import (
-            firstloop,
-            cldprop_calc_absorption_coeffs,
-            cldprop
-        )
         sync_gt4py_dict(self.indict_gt4py)
         sync_gt4py_dict(self.locdict_gt4py)
 
         start = time.time()
-        firstloop(
+        print("firstloop")
+        stencils_split.firstloop(
             self.indict_gt4py["plyr"],
             self.indict_gt4py["plvl"],
             self.indict_gt4py["tlyr"],
@@ -751,8 +672,8 @@ class RadSWClass:
             compare_data(outdict_firstloop, valdict_firstloop, explicit=True, blocking=False)
 
         self._load_random_numbers(rank)
-
-        cldprop_calc_absorption_coeffs(
+        print("cldprop")
+        stencils_split.cldprop_calc_absorption_coeffs(
             self.locdict_gt4py["cfrac"],
             self.locdict_gt4py["cliqp"],
             self.locdict_gt4py["reliq"],
@@ -800,7 +721,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        cldprop(
+        stencils_split.cldprop(
             self.locdict_gt4py["cfrac"],
             self.locdict_gt4py["cdat1"],
             self.locdict_gt4py["cdat2"],
@@ -859,8 +780,8 @@ class RadSWClass:
             )
 
             compare_data(outdict_cldprop, valdict_cldprop, explicit=True, blocking=False)
-        """
-        setcoef(
+        print("setcoef")
+        stencils_split.setcoef(
             self.locdict_gt4py["pavel"],
             self.locdict_gt4py["tavel"],
             self.locdict_gt4py["h2ovmr"],
@@ -911,7 +832,7 @@ class RadSWClass:
                 "jt1": {"fortran_shape": (npts, nlay)},
                 "laytrop": {"fortran_shape": (npts,)},
             }
-
+            sync_gt4py_dict(self.locdict_gt4py)
             outdict_setcoef = convert_gt4py_output_for_validation(
                 self.locdict_gt4py, outvars_setcoef
             )
@@ -922,6 +843,11 @@ class RadSWClass:
             compare_data(outdict_setcoef, valdict_setcoef)
 
         # Compute integer indices of troposphere height
+        try:
+            self.locdict_gt4py["laytrop"].synchronize()
+        except AttributeError:
+            pass
+
         laytropind = (
             self.locdict_gt4py["laytrop"]
             .view(np.ndarray)
@@ -932,8 +858,12 @@ class RadSWClass:
         self.locdict_gt4py["laytropind"] = create_storage_from_array(
             laytropind[:, None] - 1, backend, shape_2D, DTYPE_INT
         )
-
-        taumolsetup(
+        try:
+            self.locdict_gt4py["laytropind"].synchronize()
+        except AttributeError:
+            pass
+        
+        stencils_split.taumolsetup(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["jp"],
             self.locdict_gt4py["jt"],
@@ -968,7 +898,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol16(
+        stencils_split.taumol16(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1009,7 +939,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol17(
+        stencils_split.taumol17(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1049,8 +979,9 @@ class RadSWClass:
             origin=default_origin,
             validate_args=validate,
         )
+        print("taumol setup done")
         
-        taumol18(
+        stencils_split.taumol18(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1091,7 +1022,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol19(
+        stencils_split.taumol19(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1132,7 +1063,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol20(
+        stencils_split.taumol20(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1169,7 +1100,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol21(
+        stencils_split.taumol21(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1210,7 +1141,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol22(
+        stencils_split.taumol22(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1251,7 +1182,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol23(
+        stencils_split.taumol23(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1287,7 +1218,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol24(
+        stencils_split.taumol24(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1332,7 +1263,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol25(
+        stencils_split.taumol25(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1357,7 +1288,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol26(
+        stencils_split.taumol26(
             self.locdict_gt4py["colmol"],
             self.lookupdict26["rayl"],
             self.locdict_gt4py["taug"],
@@ -1367,7 +1298,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol27(
+        stencils_split.taumol27(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1390,8 +1321,9 @@ class RadSWClass:
             origin=default_origin,
             validate_args=validate,
         )
-
-        taumol28(
+        print("taumol27 done")
+        
+        stencils_split.taumol28(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1421,7 +1353,7 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        taumol29(
+        stencils_split.taumol29(
             self.locdict_gt4py["colamt"],
             self.locdict_gt4py["colmol"],
             self.locdict_gt4py["fac00"],
@@ -1458,6 +1390,32 @@ class RadSWClass:
             origin=default_origin,
             validate_args=validate,
         )
+        sync_gt4py_dict(self.locdict_gt4py)
+        sync_gt4py_dict(self.indict_gt4py)
+        sync_gt4py_dict(self.outdict_gt4py)
+        print("checking sync status")
+        print("indict")
+        for k,var in self.indict_gt4py.items():
+            try:
+                if not var._is_clean:
+                    print(f"\t{k}: {var._sync_state.state}")
+            except AttributeError:
+                pass
+        print("locdict")
+        for k,var in self.locdict_gt4py.items():
+            try:
+                if not var._is_clean:
+                    print(f"\t{k}: {var._sync_state.state}")
+            except AttributeError:
+                pass
+        print("outdict")
+        for k, var in self.outdict_gt4py.items():
+            try:
+                if not var._is_clean:
+                    print(f"\t{k}: {var._sync_state.state}")
+            except AttributeError:
+                pass
+                
 
         if do_subtest:
             outvars_taumol = {
@@ -1465,7 +1423,7 @@ class RadSWClass:
                 "taur": {"fortran_shape": (npts, nlay, ngptsw)},
                 "sfluxzen": {"fortran_shape": (npts, ngptsw)},
             }
-
+            sync_gt4py_dict(self.locdict_gt4py)
             outdict_taumol = convert_gt4py_output_for_validation(
                 self.locdict_gt4py, outvars_taumol
             )
@@ -1473,9 +1431,122 @@ class RadSWClass:
                 SW_SERIALIZED_DIR, "swrad", rank, 0, "taumol", outvars_taumol
             )
 
-            compare_data(outdict_taumol, valdict_taumol)
-
-        spcvrtm_clearsky(
+            compare_data(outdict_taumol, valdict_taumol, explicit=True, blocking=False)
+        
+        stencils_split.spcvrtm_clearsky(
+            self.locdict_gt4py["ssolar"],
+            self.locdict_gt4py["cosz1"],
+            self.locdict_gt4py["sntz1"],
+            self.locdict_gt4py["albbm"],
+            self.locdict_gt4py["albdf"],
+            self.locdict_gt4py["sfluxzen"],
+            self.locdict_gt4py["cldfmc"],
+            self.locdict_gt4py["zcf1"],
+            self.locdict_gt4py["zcf0"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["tauae"],
+            self.locdict_gt4py["ssaae"],
+            self.locdict_gt4py["asyae"],
+            self.locdict_gt4py["taucw"],
+            self.locdict_gt4py["ssacw"],
+            self.locdict_gt4py["asycw"],
+            self.exp_tbl,
+            self.locdict_gt4py["ztaus"],
+            self.locdict_gt4py["zssas"],
+            self.locdict_gt4py["zasys"],
+            self.locdict_gt4py["zldbt0"],
+            self.locdict_gt4py["zrefb"],
+            self.locdict_gt4py["zrefd"],
+            self.locdict_gt4py["ztrab"],
+            self.locdict_gt4py["ztrad"],
+            self.locdict_gt4py["ztdbt"],
+            self.locdict_gt4py["zldbt"],
+            self.locdict_gt4py["zfu"],
+            self.locdict_gt4py["zfd"],
+            self.locdict_gt4py["ztau1"],
+            self.locdict_gt4py["zssa1"],
+            self.locdict_gt4py["zasy1"],
+            self.locdict_gt4py["ztau0"],
+            self.locdict_gt4py["zssa0"],
+            self.locdict_gt4py["zasy0"],
+            self.locdict_gt4py["zasy3"],
+            self.locdict_gt4py["zssaw"],
+            self.locdict_gt4py["zasyw"],
+            self.locdict_gt4py["zgam1"],
+            self.locdict_gt4py["zgam2"],
+            self.locdict_gt4py["zgam3"],
+            self.locdict_gt4py["zgam4"],
+            self.locdict_gt4py["za1"],
+            self.locdict_gt4py["za2"],
+            self.locdict_gt4py["zb1"],
+            self.locdict_gt4py["zb2"],
+            self.locdict_gt4py["zrk"],
+            self.locdict_gt4py["zrk2"],
+            self.locdict_gt4py["zrp"],
+            self.locdict_gt4py["zrp1"],
+            self.locdict_gt4py["zrm1"],
+            self.locdict_gt4py["zrpp"],
+            self.locdict_gt4py["zrkg1"],
+            self.locdict_gt4py["zrkg3"],
+            self.locdict_gt4py["zrkg4"],
+            self.locdict_gt4py["zexp1"],
+            self.locdict_gt4py["zexm1"],
+            self.locdict_gt4py["zexp2"],
+            self.locdict_gt4py["zexm2"],
+            self.locdict_gt4py["zden1"],
+            self.locdict_gt4py["zexp3"],
+            self.locdict_gt4py["zexp4"],
+            self.locdict_gt4py["ze1r45"],
+            self.locdict_gt4py["ftind"],
+            self.locdict_gt4py["zsolar"],
+            self.locdict_gt4py["ztdbt0"],
+            self.locdict_gt4py["zr1"],
+            self.locdict_gt4py["zr2"],
+            self.locdict_gt4py["zr3"],
+            self.locdict_gt4py["zr4"],
+            self.locdict_gt4py["zr5"],
+            self.locdict_gt4py["zt1"],
+            self.locdict_gt4py["zt2"],
+            self.locdict_gt4py["zt3"],
+            self.locdict_gt4py["zf1"],
+            self.locdict_gt4py["zf2"],
+            self.locdict_gt4py["zrpp1"],
+            self.locdict_gt4py["zrupd"],
+            self.locdict_gt4py["zrupb"],
+            self.locdict_gt4py["ztdn"],
+            self.locdict_gt4py["zrdnd"],
+            self.locdict_gt4py["zb11"],
+            self.locdict_gt4py["zb22"],
+            self.locdict_gt4py["jb"],
+            self.locdict_gt4py["ib"],
+            self.locdict_gt4py["ibd"],
+            self.NGB,
+            self.idxsfc,
+            self.locdict_gt4py["itind"],
+            self.locdict_gt4py["fxupc"],
+            self.locdict_gt4py["fxdnc"],
+            self.locdict_gt4py["fxup0"],
+            self.locdict_gt4py["fxdn0"],
+            self.locdict_gt4py["ftoauc"],
+            self.locdict_gt4py["ftoau0"],
+            self.locdict_gt4py["ftoadc"],
+            self.locdict_gt4py["fsfcuc"],
+            self.locdict_gt4py["fsfcu0"],
+            self.locdict_gt4py["fsfcdc"],
+            self.locdict_gt4py["fsfcd0"],
+            self.locdict_gt4py["sfbmc"],
+            self.locdict_gt4py["sfdfc"],
+            self.locdict_gt4py["sfbm0"],
+            self.locdict_gt4py["sfdf0"],
+            self.locdict_gt4py["suvbfc"],
+            self.locdict_gt4py["suvbf0"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+        """
+        stencils_split.spcvrtm_allsky(
             self.locdict_gt4py["ssolar"],
             self.locdict_gt4py["cosz1"],
             self.locdict_gt4py["sntz1"],
@@ -1588,7 +1659,1028 @@ class RadSWClass:
             validate_args=validate,
         )
 
-        spcvrtm_allsky(
+        if do_subtest:
+            outvars_spcvrtm = {
+                "fxupc": {"fortran_shape": (npts, nlp1, nbdsw)},
+                "fxdnc": {"fortran_shape": (npts, nlp1, nbdsw)},
+                "fxup0": {"fortran_shape": (npts, nlp1, nbdsw)},
+                "fxdn0": {"fortran_shape": (npts, nlp1, nbdsw)},
+                "ftoauc": {"fortran_shape": (npts,)},
+                "ftoau0": {"fortran_shape": (npts,)},
+                "ftoadc": {"fortran_shape": (npts,)},
+                "fsfcuc": {"fortran_shape": (npts,)},
+                "fsfcu0": {"fortran_shape": (npts,)},
+                "fsfcdc": {"fortran_shape": (npts,)},
+                "fsfcd0": {"fortran_shape": (npts,)},
+                "sfbmc": {"fortran_shape": (npts, 2)},
+                "sfdfc": {"fortran_shape": (npts, 2)},
+                "sfbm0": {"fortran_shape": (npts, 2)},
+                "sfdf0": {"fortran_shape": (npts, 2)},
+                "suvbfc": {"fortran_shape": (npts,)},
+                "suvbf0": {"fortran_shape": (npts,)},
+            }
+            sync_gt4py_dict(self.locdict_gt4py)
+            outdict_spcvrtm = convert_gt4py_output_for_validation(
+                self.locdict_gt4py, outvars_spcvrtm
+            )
+            valdict_spcvrtm = read_intermediate_data(
+                SW_SERIALIZED_DIR, "swrad", rank, 0, "spcvrtm", outvars_spcvrtm
+            )
+
+            compare_data(outdict_spcvrtm, valdict_spcvrtm)
+
+        stencils_split.finalloop(
+            self.indict_gt4py["idxday"],
+            self.indict_gt4py["delp"],
+            self.locdict_gt4py["fxupc"],
+            self.locdict_gt4py["fxdnc"],
+            self.locdict_gt4py["fxup0"],
+            self.locdict_gt4py["fxdn0"],
+            self.locdict_gt4py["suvbf0"],
+            self.locdict_gt4py["suvbfc"],
+            self.locdict_gt4py["sfbmc"],
+            self.locdict_gt4py["sfdfc"],
+            self.locdict_gt4py["ftoauc"],
+            self.locdict_gt4py["ftoadc"],
+            self.locdict_gt4py["ftoau0"],
+            self.locdict_gt4py["fsfcuc"],
+            self.locdict_gt4py["fsfcdc"],
+            self.locdict_gt4py["fsfcu0"],
+            self.locdict_gt4py["fsfcd0"],
+            self.outdict_gt4py["upfxc_t"],
+            self.outdict_gt4py["dnfxc_t"],
+            self.outdict_gt4py["upfx0_t"],
+            self.outdict_gt4py["upfxc_s"],
+            self.outdict_gt4py["dnfxc_s"],
+            self.outdict_gt4py["upfx0_s"],
+            self.outdict_gt4py["dnfx0_s"],
+            self.outdict_gt4py["htswc"],
+            self.outdict_gt4py["htsw0"],
+            self.outdict_gt4py["uvbf0"],
+            self.outdict_gt4py["uvbfc"],
+            self.outdict_gt4py["nirbm"],
+            self.outdict_gt4py["nirdf"],
+            self.outdict_gt4py["visbm"],
+            self.outdict_gt4py["visdf"],
+            self.locdict_gt4py["rfdelp"],
+            self.locdict_gt4py["fnet"],
+            self.locdict_gt4py["fnetc"],
+            self.locdict_gt4py["fnetb"],
+            self.locdict_gt4py["flxuc"],
+            self.locdict_gt4py["flxdc"],
+            self.locdict_gt4py["flxu0"],
+            self.locdict_gt4py["flxd0"],
+            self.heatfac,
+        )
+        """
+        end = time.time()
+        print(f"Elapsed time = {end-start}")
+
+        """
+        sync_gt4py_dict(self.outdict_gt4py)
+        outdict_final = convert_gt4py_output_for_validation(
+            self.outdict_gt4py, self.outvars
+        )
+        valdict_final = read_data(
+            os.path.join(FORTRANDATA_DIR, "SW"),
+            "swrad",
+            rank,
+            0,
+            False,
+            self.outvars,
+        )
+
+        compare_data(outdict_final, valdict_final, explicit=True, blocking=False)
+        """
+    def swrad(self, rank, do_subtest=False):
+        start = time.time()
+        stencils.firstloop(
+            self.indict_gt4py["plyr"],
+            self.indict_gt4py["plvl"],
+            self.indict_gt4py["tlyr"],
+            self.indict_gt4py["tlvl"],
+            self.indict_gt4py["qlyr"],
+            self.indict_gt4py["olyr"],
+            self.indict_gt4py["gasvmr"],
+            self.indict_gt4py["clouds"],
+            self.indict_gt4py["faersw"],
+            self.indict_gt4py["sfcalb"],
+            self.indict_gt4py["dz"],
+            self.indict_gt4py["delp"],
+            self.indict_gt4py["de_lgth"],
+            self.indict_gt4py["coszen"],
+            self.indict_gt4py["idxday"],
+            self.indict_gt4py["solcon"],
+            self.locdict_gt4py["cosz1"],
+            self.locdict_gt4py["sntz1"],
+            self.locdict_gt4py["ssolar"],
+            self.locdict_gt4py["albbm"],
+            self.locdict_gt4py["albdf"],
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["tavel"],
+            self.locdict_gt4py["h2ovmr"],
+            self.locdict_gt4py["o3vmr"],
+            self.locdict_gt4py["coldry"],
+            self.locdict_gt4py["temcol"],
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["tauae"],
+            self.locdict_gt4py["ssaae"],
+            self.locdict_gt4py["asyae"],
+            self.locdict_gt4py["cfrac"],
+            self.locdict_gt4py["cliqp"],
+            self.locdict_gt4py["reliq"],
+            self.locdict_gt4py["cicep"],
+            self.locdict_gt4py["reice"],
+            self.locdict_gt4py["cdat1"],
+            self.locdict_gt4py["cdat2"],
+            self.locdict_gt4py["cdat3"],
+            self.locdict_gt4py["cdat4"],
+            self.locdict_gt4py["zcf0"],
+            self.locdict_gt4py["zcf1"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        if do_subtest:
+            outvars_firstloop = {
+                "cosz1": {"fortran_shape": (npts,)},
+                "sntz1": {"fortran_shape": (npts,)},
+                "ssolar": {"fortran_shape": (npts,)},
+                "albbm": {"fortran_shape": (npts, 2)},
+                "albdf": {"fortran_shape": (npts, 2)},
+                "pavel": {"fortran_shape": (npts, nlay)},
+                "tavel": {"fortran_shape": (npts, nlay)},
+                "h2ovmr": {"fortran_shape": (npts, nlay)},
+                "o3vmr": {"fortran_shape": (npts, nlay)},
+                "coldry": {"fortran_shape": (npts, nlay)},
+                "temcol": {"fortran_shape": (npts, nlay)},
+                "colamt": {"fortran_shape": (npts, nlay, maxgas)},
+                "colmol": {"fortran_shape": (npts, nlay)},
+                "tauae": {"fortran_shape": (npts, nlay, nbdsw)},
+                "ssaae": {"fortran_shape": (npts, nlay, nbdsw)},
+                "asyae": {"fortran_shape": (npts, nlay, nbdsw)},
+                "cfrac": {"fortran_shape": (npts, nlay)},
+                "cliqp": {"fortran_shape": (npts, nlay)},
+                "reliq": {"fortran_shape": (npts, nlay)},
+                "cicep": {"fortran_shape": (npts, nlay)},
+                "reice": {"fortran_shape": (npts, nlay)},
+                "cdat1": {"fortran_shape": (npts, nlay)},
+                "cdat2": {"fortran_shape": (npts, nlay)},
+                "cdat3": {"fortran_shape": (npts, nlay)},
+                "cdat4": {"fortran_shape": (npts, nlay)},
+                "zcf0": {"fortran_shape": (npts,)},
+                "zcf1": {"fortran_shape": (npts,)},
+            }
+
+            outdict_firstloop = convert_gt4py_output_for_validation(
+                self.locdict_gt4py, outvars_firstloop
+            )
+            valdict_firstloop = read_intermediate_data(
+                SW_SERIALIZED_DIR, "swrad", rank, 0, "firstloop", outvars_firstloop
+            )
+
+            compare_data(outdict_firstloop, valdict_firstloop)
+
+        self._load_random_numbers(rank)
+
+        stencils.cldprop(
+            self.locdict_gt4py["cfrac"],
+            self.locdict_gt4py["cliqp"],
+            self.locdict_gt4py["reliq"],
+            self.locdict_gt4py["cicep"],
+            self.locdict_gt4py["reice"],
+            self.locdict_gt4py["cdat1"],
+            self.locdict_gt4py["cdat2"],
+            self.locdict_gt4py["cdat3"],
+            self.locdict_gt4py["cdat4"],
+            self.locdict_gt4py["zcf1"],
+            self.indict_gt4py["dz"],
+            self.indict_gt4py["de_lgth"],
+            self.indict_gt4py["idxday"],
+            self.locdict_gt4py["cldfmc"],
+            self.locdict_gt4py["taucw"],
+            self.locdict_gt4py["ssacw"],
+            self.locdict_gt4py["asycw"],
+            self.locdict_gt4py["cldfrc"],
+            self.outdict_gt4py["cldtausw"],
+            self.locdict_gt4py["tauliq"],
+            self.locdict_gt4py["tauice"],
+            self.locdict_gt4py["ssaliq"],
+            self.locdict_gt4py["ssaice"],
+            self.locdict_gt4py["ssaran"],
+            self.locdict_gt4py["ssasnw"],
+            self.locdict_gt4py["asyliq"],
+            self.locdict_gt4py["asyice"],
+            self.locdict_gt4py["asyran"],
+            self.locdict_gt4py["asysnw"],
+            self.locdict_gt4py["cldf"],
+            self.locdict_gt4py["dgeice"],
+            self.locdict_gt4py["factor"],
+            self.locdict_gt4py["fint"],
+            self.locdict_gt4py["tauran"],
+            self.locdict_gt4py["tausnw"],
+            self.locdict_gt4py["cldliq"],
+            self.locdict_gt4py["refliq"],
+            self.locdict_gt4py["cldice"],
+            self.locdict_gt4py["refice"],
+            self.locdict_gt4py["cldran"],
+            self.locdict_gt4py["cldsnw"],
+            self.locdict_gt4py["refsnw"],
+            self.locdict_gt4py["extcoliq"],
+            self.locdict_gt4py["ssacoliq"],
+            self.locdict_gt4py["asycoliq"],
+            self.locdict_gt4py["extcoice"],
+            self.locdict_gt4py["ssacoice"],
+            self.locdict_gt4py["asycoice"],
+            self.locdict_gt4py["dgesnw"],
+            self.locdict_gt4py["lcloudy"],
+            self.locdict_gt4py["index"],
+            self.locdict_gt4py["ia"],
+            self.locdict_gt4py["jb"],
+            self.idxebc,
+            self.lookupdict_gt4py["cdfunc"],
+            self.lookupdict_gt4py["extliq1"],
+            self.lookupdict_gt4py["extliq2"],
+            self.lookupdict_gt4py["ssaliq1"],
+            self.lookupdict_gt4py["ssaliq2"],
+            self.lookupdict_gt4py["asyliq1"],
+            self.lookupdict_gt4py["asyliq2"],
+            self.lookupdict_gt4py["extice2"],
+            self.lookupdict_gt4py["ssaice2"],
+            self.lookupdict_gt4py["asyice2"],
+            self.lookupdict_gt4py["extice3"],
+            self.lookupdict_gt4py["ssaice3"],
+            self.lookupdict_gt4py["asyice3"],
+            self.lookupdict_gt4py["fdlice3"],
+            self.lookupdict_gt4py["abari"],
+            self.lookupdict_gt4py["bbari"],
+            self.lookupdict_gt4py["cbari"],
+            self.lookupdict_gt4py["dbari"],
+            self.lookupdict_gt4py["ebari"],
+            self.lookupdict_gt4py["fbari"],
+            self.lookupdict_gt4py["b0s"],
+            self.lookupdict_gt4py["b1s"],
+            self.lookupdict_gt4py["c0s"],
+            self.lookupdict_gt4py["b0r"],
+            self.lookupdict_gt4py["c0r"],
+            self.lookupdict_gt4py["a0r"],
+            self.lookupdict_gt4py["a1r"],
+            self.lookupdict_gt4py["a0s"],
+            self.lookupdict_gt4py["a1s"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        if do_subtest:
+            outvars_cldprop = {
+                "cldfmc": {"fortran_shape": (npts, nlay, ngptsw)},
+                "taucw": {"fortran_shape": (npts, nlay, nbdsw)},
+                "ssacw": {"fortran_shape": (npts, nlay, nbdsw)},
+                "asycw": {"fortran_shape": (npts, nlay, nbdsw)},
+                "cldfrc": {"fortran_shape": (npts, nlay)},
+            }
+
+            outdict_cldprop = convert_gt4py_output_for_validation(
+                self.locdict_gt4py, outvars_cldprop
+            )
+            valdict_cldprop = read_intermediate_data(
+                SW_SERIALIZED_DIR, "swrad", rank, 0, "cldprop", outvars_cldprop
+            )
+
+            compare_data(outdict_cldprop, valdict_cldprop)
+
+        stencils.setcoef(
+            self.locdict_gt4py["pavel"],
+            self.locdict_gt4py["tavel"],
+            self.locdict_gt4py["h2ovmr"],
+            self.indict_gt4py["idxday"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["plog"],
+            self.locdict_gt4py["fp"],
+            self.locdict_gt4py["fp1"],
+            self.locdict_gt4py["ft"],
+            self.locdict_gt4py["ft1"],
+            self.locdict_gt4py["tem1"],
+            self.locdict_gt4py["tem2"],
+            self.locdict_gt4py["jp1"],
+            self.lookupdict_gt4py["preflog"],
+            self.lookupdict_gt4py["tref"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        if do_subtest:
+            outvars_setcoef = {
+                "fac00": {"fortran_shape": (npts, nlay)},
+                "fac01": {"fortran_shape": (npts, nlay)},
+                "fac10": {"fortran_shape": (npts, nlay)},
+                "fac11": {"fortran_shape": (npts, nlay)},
+                "selffac": {"fortran_shape": (npts, nlay)},
+                "selffrac": {"fortran_shape": (npts, nlay)},
+                "forfac": {"fortran_shape": (npts, nlay)},
+                "forfrac": {"fortran_shape": (npts, nlay)},
+                "indself": {"fortran_shape": (npts, nlay)},
+                "indfor": {"fortran_shape": (npts, nlay)},
+                "jp": {"fortran_shape": (npts, nlay)},
+                "jt": {"fortran_shape": (npts, nlay)},
+                "jt1": {"fortran_shape": (npts, nlay)},
+                "laytrop": {"fortran_shape": (npts,)},
+            }
+
+            outdict_setcoef = convert_gt4py_output_for_validation(
+                self.locdict_gt4py, outvars_setcoef
+            )
+            valdict_setcoef = read_intermediate_data(
+                SW_SERIALIZED_DIR, "swrad", rank, 0, "setcoef", outvars_setcoef
+            )
+
+            compare_data(outdict_setcoef, valdict_setcoef)
+
+        # Compute integer indices of troposphere height
+        laytropind = (
+            self.locdict_gt4py["laytrop"]
+            .view(np.ndarray)
+            .astype(int)
+            .squeeze()
+            .sum(axis=1)
+        )
+        self.locdict_gt4py["laytropind"] = create_storage_from_array(
+            laytropind[:, None] - 1, backend, shape_2D, DTYPE_INT
+        )
+
+        stencils.taumolsetup(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["jp"],
+            self.locdict_gt4py["jt"],
+            self.locdict_gt4py["jt1"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["laytropind"],
+            self.indict_gt4py["idxday"],
+            self.locdict_gt4py["sfluxzen"],
+            self.layind,
+            self.nspa,
+            self.nspb,
+            self.ngs,
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["fs"],
+            self.locdict_gt4py["js"],
+            self.locdict_gt4py["jsa"],
+            self.locdict_gt4py["colm1"],
+            self.locdict_gt4py["colm2"],
+            self.lookupdict_ref["sfluxref01"],
+            self.lookupdict_ref["sfluxref02"],
+            self.lookupdict_ref["sfluxref03"],
+            self.lookupdict_ref["layreffr"],
+            self.lookupdict_ref["ix1"],
+            self.lookupdict_ref["ix2"],
+            self.lookupdict_ref["ibx"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict_ref["specwt"],
+            self.lookupdict_ref["scalekur"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol16(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict16["selfref"],
+            self.lookupdict16["forref"],
+            self.lookupdict16["absa"],
+            self.lookupdict16["absb"],
+            self.lookupdict16["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol17(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict17["selfref"],
+            self.lookupdict17["forref"],
+            self.lookupdict17["absa"],
+            self.lookupdict17["absb"],
+            self.lookupdict17["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol18(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict18["selfref"],
+            self.lookupdict18["forref"],
+            self.lookupdict18["absa"],
+            self.lookupdict18["absb"],
+            self.lookupdict18["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol19(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict19["selfref"],
+            self.lookupdict19["forref"],
+            self.lookupdict19["absa"],
+            self.lookupdict19["absb"],
+            self.lookupdict19["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol20(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict20["selfref"],
+            self.lookupdict20["forref"],
+            self.lookupdict20["absa"],
+            self.lookupdict20["absb"],
+            self.lookupdict20["absch4"],
+            self.lookupdict20["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol21(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict21["selfref"],
+            self.lookupdict21["forref"],
+            self.lookupdict21["absa"],
+            self.lookupdict21["absb"],
+            self.lookupdict21["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol22(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict22["selfref"],
+            self.lookupdict22["forref"],
+            self.lookupdict22["absa"],
+            self.lookupdict22["absb"],
+            self.lookupdict22["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol23(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict23["selfref"],
+            self.lookupdict23["forref"],
+            self.lookupdict23["absa"],
+            self.lookupdict23["rayl"],
+            self.lookupdict23["givfac"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol24(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict24["selfref"],
+            self.lookupdict24["forref"],
+            self.lookupdict24["absa"],
+            self.lookupdict24["absb"],
+            self.lookupdict24["rayla"],
+            self.lookupdict24["raylb"],
+            self.lookupdict24["abso3a"],
+            self.lookupdict24["abso3b"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            self.locdict_gt4py["js"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol25(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.lookupdict25["absa"],
+            self.lookupdict25["rayl"],
+            self.lookupdict25["abso3a"],
+            self.lookupdict25["abso3b"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol26(
+            self.locdict_gt4py["colmol"],
+            self.lookupdict26["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol27(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.lookupdict27["absa"],
+            self.lookupdict27["absb"],
+            self.lookupdict27["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol28(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.lookupdict_ref["strrat"],
+            self.lookupdict28["absa"],
+            self.lookupdict28["absb"],
+            self.lookupdict28["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind03"],
+            self.locdict_gt4py["ind04"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["ind13"],
+            self.locdict_gt4py["ind14"],
+            self.locdict_gt4py["js"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.taumol29(
+            self.locdict_gt4py["colamt"],
+            self.locdict_gt4py["colmol"],
+            self.locdict_gt4py["fac00"],
+            self.locdict_gt4py["fac01"],
+            self.locdict_gt4py["fac10"],
+            self.locdict_gt4py["fac11"],
+            self.locdict_gt4py["laytrop"],
+            self.locdict_gt4py["forfac"],
+            self.locdict_gt4py["forfrac"],
+            self.locdict_gt4py["indfor"],
+            self.locdict_gt4py["selffac"],
+            self.locdict_gt4py["selffrac"],
+            self.locdict_gt4py["indself"],
+            self.lookupdict29["forref"],
+            self.lookupdict29["absa"],
+            self.lookupdict29["absb"],
+            self.lookupdict29["selfref"],
+            self.lookupdict29["absh2o"],
+            self.lookupdict29["absco2"],
+            self.lookupdict29["rayl"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["id0"],
+            self.locdict_gt4py["id1"],
+            self.locdict_gt4py["ind01"],
+            self.locdict_gt4py["ind02"],
+            self.locdict_gt4py["ind11"],
+            self.locdict_gt4py["ind12"],
+            self.locdict_gt4py["inds"],
+            self.locdict_gt4py["indsp"],
+            self.locdict_gt4py["indf"],
+            self.locdict_gt4py["indfp"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        if do_subtest:
+            outvars_taumol = {
+                "taug": {"fortran_shape": (npts, nlay, ngptsw)},
+                "taur": {"fortran_shape": (npts, nlay, ngptsw)},
+                "sfluxzen": {"fortran_shape": (npts, ngptsw)},
+            }
+
+            outdict_taumol = convert_gt4py_output_for_validation(
+                self.locdict_gt4py, outvars_taumol
+            )
+            valdict_taumol = read_intermediate_data(
+                SW_SERIALIZED_DIR, "swrad", rank, 0, "taumol", outvars_taumol
+            )
+
+            compare_data(outdict_taumol, valdict_taumol, blocking=False)
+
+        stencils.spcvrtm_clearsky(
+            self.locdict_gt4py["ssolar"],
+            self.locdict_gt4py["cosz1"],
+            self.locdict_gt4py["sntz1"],
+            self.locdict_gt4py["albbm"],
+            self.locdict_gt4py["albdf"],
+            self.locdict_gt4py["sfluxzen"],
+            self.locdict_gt4py["cldfmc"],
+            self.locdict_gt4py["zcf1"],
+            self.locdict_gt4py["zcf0"],
+            self.locdict_gt4py["taug"],
+            self.locdict_gt4py["taur"],
+            self.locdict_gt4py["tauae"],
+            self.locdict_gt4py["ssaae"],
+            self.locdict_gt4py["asyae"],
+            self.locdict_gt4py["taucw"],
+            self.locdict_gt4py["ssacw"],
+            self.locdict_gt4py["asycw"],
+            self.exp_tbl,
+            self.locdict_gt4py["ztaus"],
+            self.locdict_gt4py["zssas"],
+            self.locdict_gt4py["zasys"],
+            self.locdict_gt4py["zldbt0"],
+            self.locdict_gt4py["zrefb"],
+            self.locdict_gt4py["zrefd"],
+            self.locdict_gt4py["ztrab"],
+            self.locdict_gt4py["ztrad"],
+            self.locdict_gt4py["ztdbt"],
+            self.locdict_gt4py["zldbt"],
+            self.locdict_gt4py["zfu"],
+            self.locdict_gt4py["zfd"],
+            self.locdict_gt4py["ztau1"],
+            self.locdict_gt4py["zssa1"],
+            self.locdict_gt4py["zasy1"],
+            self.locdict_gt4py["ztau0"],
+            self.locdict_gt4py["zssa0"],
+            self.locdict_gt4py["zasy0"],
+            self.locdict_gt4py["zasy3"],
+            self.locdict_gt4py["zssaw"],
+            self.locdict_gt4py["zasyw"],
+            self.locdict_gt4py["zgam1"],
+            self.locdict_gt4py["zgam2"],
+            self.locdict_gt4py["zgam3"],
+            self.locdict_gt4py["zgam4"],
+            self.locdict_gt4py["za1"],
+            self.locdict_gt4py["za2"],
+            self.locdict_gt4py["zb1"],
+            self.locdict_gt4py["zb2"],
+            self.locdict_gt4py["zrk"],
+            self.locdict_gt4py["zrk2"],
+            self.locdict_gt4py["zrp"],
+            self.locdict_gt4py["zrp1"],
+            self.locdict_gt4py["zrm1"],
+            self.locdict_gt4py["zrpp"],
+            self.locdict_gt4py["zrkg1"],
+            self.locdict_gt4py["zrkg3"],
+            self.locdict_gt4py["zrkg4"],
+            self.locdict_gt4py["zexp1"],
+            self.locdict_gt4py["zexm1"],
+            self.locdict_gt4py["zexp2"],
+            self.locdict_gt4py["zexm2"],
+            self.locdict_gt4py["zden1"],
+            self.locdict_gt4py["zexp3"],
+            self.locdict_gt4py["zexp4"],
+            self.locdict_gt4py["ze1r45"],
+            self.locdict_gt4py["ftind"],
+            self.locdict_gt4py["zsolar"],
+            self.locdict_gt4py["ztdbt0"],
+            self.locdict_gt4py["zr1"],
+            self.locdict_gt4py["zr2"],
+            self.locdict_gt4py["zr3"],
+            self.locdict_gt4py["zr4"],
+            self.locdict_gt4py["zr5"],
+            self.locdict_gt4py["zt1"],
+            self.locdict_gt4py["zt2"],
+            self.locdict_gt4py["zt3"],
+            self.locdict_gt4py["zf1"],
+            self.locdict_gt4py["zf2"],
+            self.locdict_gt4py["zrpp1"],
+            self.locdict_gt4py["zrupd"],
+            self.locdict_gt4py["zrupb"],
+            self.locdict_gt4py["ztdn"],
+            self.locdict_gt4py["zrdnd"],
+            self.locdict_gt4py["zb11"],
+            self.locdict_gt4py["zb22"],
+            self.locdict_gt4py["jb"],
+            self.locdict_gt4py["ib"],
+            self.locdict_gt4py["ibd"],
+            self.NGB,
+            self.idxsfc,
+            self.locdict_gt4py["itind"],
+            self.locdict_gt4py["fxupc"],
+            self.locdict_gt4py["fxdnc"],
+            self.locdict_gt4py["fxup0"],
+            self.locdict_gt4py["fxdn0"],
+            self.locdict_gt4py["ftoauc"],
+            self.locdict_gt4py["ftoau0"],
+            self.locdict_gt4py["ftoadc"],
+            self.locdict_gt4py["fsfcuc"],
+            self.locdict_gt4py["fsfcu0"],
+            self.locdict_gt4py["fsfcdc"],
+            self.locdict_gt4py["fsfcd0"],
+            self.locdict_gt4py["sfbmc"],
+            self.locdict_gt4py["sfdfc"],
+            self.locdict_gt4py["sfbm0"],
+            self.locdict_gt4py["sfdf0"],
+            self.locdict_gt4py["suvbfc"],
+            self.locdict_gt4py["suvbf0"],
+            domain=shape_nlp1,
+            origin=default_origin,
+            validate_args=validate,
+        )
+
+        stencils.spcvrtm_allsky(
             self.locdict_gt4py["ssolar"],
             self.locdict_gt4py["cosz1"],
             self.locdict_gt4py["sntz1"],
@@ -1729,9 +2821,9 @@ class RadSWClass:
                 SW_SERIALIZED_DIR, "swrad", rank, 0, "spcvrtm", outvars_spcvrtm
             )
 
-            compare_data(outdict_spcvrtm, valdict_spcvrtm)
+            compare_data(outdict_spcvrtm, valdict_spcvrtm, blocking=False)
 
-        finalloop(
+        stencils.finalloop(
             self.indict_gt4py["idxday"],
             self.indict_gt4py["delp"],
             self.locdict_gt4py["fxupc"],
@@ -1774,10 +2866,10 @@ class RadSWClass:
             self.locdict_gt4py["flxd0"],
             self.heatfac,
         )
-        """
+
         end = time.time()
         print(f"Elapsed time = {end-start}")
-        """
+
         outdict_final = convert_gt4py_output_for_validation(
             self.outdict_gt4py, self.outvars
         )
@@ -1790,5 +2882,4 @@ class RadSWClass:
             self.outvars,
         )
 
-        compare_data(outdict_final, valdict_final, explicit=True, blocking=False)
-        """
+        compare_data(outdict_final, valdict_final, blocking=False)

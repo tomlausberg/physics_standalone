@@ -16,9 +16,10 @@ elif IS_DOCKER:
 else:
     sys.path.insert(0, "/home/tom/semester_thesis/code/toml_standalone/radiation/python")
 
+IS_SPLIT_STENCIL = (os.getenv("IS_SPLIT_STENCIL") == "True") if ("IS_SPLIT_STENCIL" in os.environ) else False
 
 from config import *
-print(f"Running shortwave validation with {backend} backend")
+print(f"Running shortwave validation with {backend} backend {'with split stencils' if IS_SPLIT_STENCIL else ''}")
 
 from radsw.radsw_main_gt4py import RadSWClass
 from radphysparam import icldflg
@@ -41,4 +42,7 @@ for rank in range(2):
     rsw = RadSWClass(rank, iovrsw, isubcsw, icldflg)
     if nday > 0:
         rsw.create_input_data(rank)
-        rsw.swrad(rank, do_subtest=True)
+        if IS_SPLIT_STENCIL:
+            rsw.swrad_split(rank, do_subtest=True)
+        else:
+            rsw.swrad(rank, do_subtest=True)

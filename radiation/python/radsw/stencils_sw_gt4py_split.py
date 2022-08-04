@@ -711,7 +711,7 @@ def cldprop_calc_absorption_coeffs(
                                 ssaice[0, 0, 0][ib8] = tauice[0, 0, 0][ib8] * ssacoice
                                 asyice[0, 0, 0][ib8] = ssaice[0, 0, 0][ib8] * asycoice
 
-"""
+
 @stencil(backend=backend, rebuild=rebuild, externals={"stpfac": stpfac})
 def setcoef(
     pavel: FIELD_FLT,
@@ -2695,7 +2695,6 @@ def taumol29(
                     + colamt[0, 0, 0][0] * absh2o[0, 0, 0][j3]
                 )
 
-
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -2708,41 +2707,39 @@ def taumol29(
         "zcrit": zcrit,
         "zsr3": zsr3,
         "od_lo": od_lo,
-        "eps1": eps1,
-        "eps": eps,
     },
 )
-def spcvrtm_clearsky(
+def spcvrtm_clearsky_a(
     ssolar: FIELD_2D,
     cosz: FIELD_2D,
     sntz: FIELD_2D,
     albbm: Field[(DTYPE_FLT, (2,))],
     albdf: Field[(DTYPE_FLT, (2,))],
     sfluxzen: Field[gtscript.IJ, type_ngptsw],
-    cldfmc: Field[type_ngptsw],
-    cf1: FIELD_2D,
-    cf0: FIELD_2D,
+        # cldfmc: Field[type_ngptsw],
+        # cf1: FIELD_2D,
+        # cf0: FIELD_2D,
     taug: Field[type_ngptsw],
     taur: Field[type_ngptsw],
     tauae: Field[type_nbdsw],
     ssaae: Field[type_nbdsw],
     asyae: Field[type_nbdsw],
-    taucw: Field[type_nbdsw],
-    ssacw: Field[type_nbdsw],
-    asycw: Field[type_nbdsw],
+        # taucw: Field[type_nbdsw],
+        # ssacw: Field[type_nbdsw],
+        # asycw: Field[type_nbdsw],
     exp_tbl: Field[type_ntbmx],
     ztaus: Field[type_ngptsw],
     zssas: Field[type_ngptsw],
     zasys: Field[type_ngptsw],
-    zldbt0: Field[type_ngptsw],
+    # zldbt0: Field[type_ngptsw],
     zrefb: Field[type_ngptsw],
     zrefd: Field[type_ngptsw],
     ztrab: Field[type_ngptsw],
     ztrad: Field[type_ngptsw],
     ztdbt: Field[type_ngptsw],
     zldbt: Field[type_ngptsw],
-    zfu: Field[type_ngptsw],
-    zfd: Field[type_ngptsw],
+    # zfu: Field[type_ngptsw],
+    # zfd: Field[type_ngptsw],
     ztau1: Field[type_ngptsw],
     zssa1: Field[type_ngptsw],
     zasy1: Field[type_ngptsw],
@@ -2760,66 +2757,66 @@ def spcvrtm_clearsky(
     za2: Field[type_ngptsw],
     zb1: Field[type_ngptsw],
     zb2: Field[type_ngptsw],
-    zrk: Field[type_ngptsw],
-    zrk2: Field[type_ngptsw],
-    zrp: Field[type_ngptsw],
-    zrp1: Field[type_ngptsw],
-    zrm1: Field[type_ngptsw],
-    zrpp: Field[type_ngptsw],
-    zrkg1: Field[type_ngptsw],
-    zrkg3: Field[type_ngptsw],
-    zrkg4: Field[type_ngptsw],
-    zexp1: Field[type_ngptsw],
-    zexm1: Field[type_ngptsw],
-    zexp2: Field[type_ngptsw],
-    zexm2: Field[type_ngptsw],
-    zden1: Field[type_ngptsw],
-    zexp3: Field[type_ngptsw],
-    zexp4: Field[type_ngptsw],
-    ze1r45: Field[type_ngptsw],
+    # zrk: Field[type_ngptsw],
+    # zrk2: Field[type_ngptsw],
+    # zrp: Field[type_ngptsw],
+    # zrp1: Field[type_ngptsw],
+    # zrm1: Field[type_ngptsw],
+    # zrpp: Field[type_ngptsw],
+    # zrkg1: Field[type_ngptsw],
+    # zrkg3: Field[type_ngptsw],
+    # zrkg4: Field[type_ngptsw],
+    # zexp1: Field[type_ngptsw],
+    # zexm1: Field[type_ngptsw],
+    # zexp2: Field[type_ngptsw],
+    # zexm2: Field[type_ngptsw],
+    # zden1: Field[type_ngptsw],
+    # zexp3: Field[type_ngptsw],
+    # zexp4: Field[type_ngptsw],
+    # ze1r45: Field[type_ngptsw],
     ftind: Field[type_ngptsw],
     zsolar: Field[type_ngptsw],
     ztdbt0: Field[type_ngptsw],
-    zr1: Field[type_ngptsw],
-    zr2: Field[type_ngptsw],
-    zr3: Field[type_ngptsw],
-    zr4: Field[type_ngptsw],
-    zr5: Field[type_ngptsw],
-    zt1: Field[type_ngptsw],
-    zt2: Field[type_ngptsw],
-    zt3: Field[type_ngptsw],
-    zf1: Field[type_ngptsw],
-    zf2: Field[type_ngptsw],
-    zrpp1: Field[type_ngptsw],
-    zrupd: Field[type_ngptsw],
-    zrupb: Field[type_ngptsw],
-    ztdn: Field[type_ngptsw],
-    zrdnd: Field[type_ngptsw],
-    zb11: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
-    zb22: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    # zr1: Field[type_ngptsw],
+    # zr2: Field[type_ngptsw],
+    # zr3: Field[type_ngptsw],
+    # zr4: Field[type_ngptsw],
+    # zr5: Field[type_ngptsw],
+    # zt1: Field[type_ngptsw],
+    # zt2: Field[type_ngptsw],
+    # zt3: Field[type_ngptsw],
+    # zf1: Field[type_ngptsw],
+    # zf2: Field[type_ngptsw],
+    # zrpp1: Field[type_ngptsw],
+    # zrupd: Field[type_ngptsw],
+    # zrupb: Field[type_ngptsw],
+    # ztdn: Field[type_ngptsw],
+    # zrdnd: Field[type_ngptsw],
+    # zb11: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    # zb22: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
     jb: FIELD_INT,
     ib: FIELD_INT,
     ibd: FIELD_INT,
     NGB: Field[type_ngptsw],
     idxsfc: Field[(DTYPE_INT, (14,))],
     itind: FIELD_INT,
-    fxupc: Field[type_nbdsw],
-    fxdnc: Field[type_nbdsw],
-    fxup0: Field[type_nbdsw],
-    fxdn0: Field[type_nbdsw],
-    ftoauc: FIELD_2D,
-    ftoau0: FIELD_2D,
-    ftoadc: FIELD_2D,
-    fsfcuc: FIELD_2D,
-    fsfcu0: FIELD_2D,
-    fsfcdc: FIELD_2D,
-    fsfcd0: FIELD_2D,
-    sfbmc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
-    sfdfc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
-    sfbm0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
-    sfdf0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
-    suvbfc: FIELD_2D,
-    suvbf0: FIELD_2D,
+        # fxupc: Field[type_nbdsw],
+        # fxdnc: Field[type_nbdsw],
+    # fxup0: Field[type_nbdsw],
+    # fxdn0: Field[type_nbdsw],
+        # ftoauc: FIELD_2D,
+        # ftoau0: FIELD_2D,
+        # ftoadc: FIELD_2D,
+        # fsfcuc: FIELD_2D,
+        # fsfcu0: FIELD_2D,
+        # fsfcdc: FIELD_2D,
+        # fsfcd0: FIELD_2D,
+        # sfbmc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # sfdfc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    # sfbm0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    # sfdf0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # suvbfc: FIELD_2D,
+        # suvbf0: FIELD_2D,
 ):
     from __externals__ import (
         ngptsw,
@@ -2829,8 +2826,6 @@ def spcvrtm_clearsky(
         zcrit,
         zsr3,
         od_lo,
-        eps1,
-        eps,
     )
 
     with computation(PARALLEL), interval(...):
@@ -2983,6 +2978,143 @@ def spcvrtm_clearsky(
                 )
                 ztrad[0, 0, 0][nn3] = max(0.0, min(1.0, 1.0 - zrefd[0, 0, 0][nn3]))
 
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "ngptsw": ngptsw,
+        "bpade": bpade,
+        "oneminus": oneminus,
+        "ftiny": ftiny,
+        "flimit": flimit,
+        "zcrit": zcrit,
+        "zsr3": zsr3,
+        "od_lo": od_lo,
+        "eps1": eps1,
+        "eps": eps,
+    },
+)
+def spcvrtm_clearsky_b(
+    # ssolar: FIELD_2D,
+    cosz: FIELD_2D,
+    sntz: FIELD_2D,
+    # albbm: Field[(DTYPE_FLT, (2,))],
+    # albdf: Field[(DTYPE_FLT, (2,))],
+    # sfluxzen: Field[gtscript.IJ, type_ngptsw],
+        # cldfmc: Field[type_ngptsw],
+        # cf1: FIELD_2D,
+        # cf0: FIELD_2D,
+    # taug: Field[type_ngptsw],
+    # taur: Field[type_ngptsw],
+    # tauae: Field[type_nbdsw],
+    # ssaae: Field[type_nbdsw],
+    # asyae: Field[type_nbdsw],
+        # taucw: Field[type_nbdsw],
+        # ssacw: Field[type_nbdsw],
+        # asycw: Field[type_nbdsw],
+    exp_tbl: Field[type_ntbmx],
+    # ztaus: Field[type_ngptsw],
+    # zssas: Field[type_ngptsw],
+    # zasys: Field[type_ngptsw],
+    zldbt0: Field[type_ngptsw],
+    zrefb: Field[type_ngptsw],
+    zrefd: Field[type_ngptsw],
+    ztrab: Field[type_ngptsw],
+    ztrad: Field[type_ngptsw],
+    ztdbt: Field[type_ngptsw],
+    zldbt: Field[type_ngptsw],
+    zfu: Field[type_ngptsw],
+    zfd: Field[type_ngptsw],
+    ztau1: Field[type_ngptsw],
+    zssa1: Field[type_ngptsw],
+    # zasy1: Field[type_ngptsw],
+    ztau0: Field[type_ngptsw],
+    # zssa0: Field[type_ngptsw],
+    # zasy0: Field[type_ngptsw],
+    # zasy3: Field[type_ngptsw],
+    zssaw: Field[type_ngptsw],
+    # zasyw: Field[type_ngptsw],
+    zgam1: Field[type_ngptsw],
+    zgam2: Field[type_ngptsw],
+    zgam3: Field[type_ngptsw],
+    zgam4: Field[type_ngptsw],
+    za1: Field[type_ngptsw],
+    za2: Field[type_ngptsw],
+    zb1: Field[type_ngptsw],
+    zb2: Field[type_ngptsw],
+    zrk: Field[type_ngptsw],
+    zrk2: Field[type_ngptsw],
+    zrp: Field[type_ngptsw],
+    zrp1: Field[type_ngptsw],
+    zrm1: Field[type_ngptsw],
+    zrpp: Field[type_ngptsw],
+    zrkg1: Field[type_ngptsw],
+    zrkg3: Field[type_ngptsw],
+    zrkg4: Field[type_ngptsw],
+    zexp1: Field[type_ngptsw],
+    zexm1: Field[type_ngptsw],
+    zexp2: Field[type_ngptsw],
+    zexm2: Field[type_ngptsw],
+    zden1: Field[type_ngptsw],
+    zexp3: Field[type_ngptsw],
+    zexp4: Field[type_ngptsw],
+    ze1r45: Field[type_ngptsw],
+    ftind: Field[type_ngptsw],
+    zsolar: Field[type_ngptsw],
+    ztdbt0: Field[type_ngptsw],
+    zr1: Field[type_ngptsw],
+    zr2: Field[type_ngptsw],
+    zr3: Field[type_ngptsw],
+    zr4: Field[type_ngptsw],
+    zr5: Field[type_ngptsw],
+    zt1: Field[type_ngptsw],
+    zt2: Field[type_ngptsw],
+    zt3: Field[type_ngptsw],
+    zf1: Field[type_ngptsw],
+    zf2: Field[type_ngptsw],
+    zrpp1: Field[type_ngptsw],
+    zrupd: Field[type_ngptsw],
+    zrupb: Field[type_ngptsw],
+    ztdn: Field[type_ngptsw],
+    zrdnd: Field[type_ngptsw],
+    zb11: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    zb22: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    jb: FIELD_INT,
+    ib: FIELD_INT,
+    ibd: FIELD_INT,
+    NGB: Field[type_ngptsw],
+    idxsfc: Field[(DTYPE_INT, (14,))],
+    itind: FIELD_INT,
+        # fxupc: Field[type_nbdsw],
+        # fxdnc: Field[type_nbdsw],
+    fxup0: Field[type_nbdsw],
+    fxdn0: Field[type_nbdsw],
+        # ftoauc: FIELD_2D,
+        # ftoau0: FIELD_2D,
+        # ftoadc: FIELD_2D,
+        # fsfcuc: FIELD_2D,
+        # fsfcu0: FIELD_2D,
+        # fsfcdc: FIELD_2D,
+        # fsfcd0: FIELD_2D,
+        # sfbmc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # sfdfc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    sfbm0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    sfdf0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # suvbfc: FIELD_2D,
+        # suvbf0: FIELD_2D,
+):
+    from __externals__ import (
+        ngptsw,
+        bpade,
+        oneminus,
+        ftiny,
+        zcrit,
+        zsr3,
+        od_lo,
+        eps1,
+        eps,
+    )
+
     with computation(BACKWARD), interval(0, -1):
         for n4 in range(ngptsw):
             jb = NGB[0, 0, 0][n4] - 1
@@ -3130,6 +3262,143 @@ def spcvrtm_clearsky(
                 ztrad[0, 0, 0][nn4] = max(
                     0.0, min(1.0, zrk2[0, 0, -1][nn4] * zden1[0, 0, 0][nn4])
                 )
+
+@stencil(
+    backend=backend,
+    rebuild=rebuild,
+    externals={
+        "ngptsw": ngptsw,
+        "bpade": bpade,
+        "oneminus": oneminus,
+        "ftiny": ftiny,
+        "flimit": flimit,
+        "zcrit": zcrit,
+        "zsr3": zsr3,
+        "od_lo": od_lo,
+        "eps1": eps1,
+        "eps": eps,
+    },
+)
+def spcvrtm_clearsky_c(
+    # ssolar: FIELD_2D,
+    cosz: FIELD_2D,
+    sntz: FIELD_2D,
+    # albbm: Field[(DTYPE_FLT, (2,))],
+    # albdf: Field[(DTYPE_FLT, (2,))],
+    # sfluxzen: Field[gtscript.IJ, type_ngptsw],
+        # cldfmc: Field[type_ngptsw],
+        # cf1: FIELD_2D,
+        # cf0: FIELD_2D,
+    # taug: Field[type_ngptsw],
+    # taur: Field[type_ngptsw],
+    # tauae: Field[type_nbdsw],
+    # ssaae: Field[type_nbdsw],
+    # asyae: Field[type_nbdsw],
+        # taucw: Field[type_nbdsw],
+        # ssacw: Field[type_nbdsw],
+        # asycw: Field[type_nbdsw],
+    exp_tbl: Field[type_ntbmx],
+    # ztaus: Field[type_ngptsw],
+    # zssas: Field[type_ngptsw],
+    # zasys: Field[type_ngptsw],
+    zldbt0: Field[type_ngptsw],
+    zrefb: Field[type_ngptsw],
+    zrefd: Field[type_ngptsw],
+    ztrab: Field[type_ngptsw],
+    ztrad: Field[type_ngptsw],
+    ztdbt: Field[type_ngptsw],
+    zldbt: Field[type_ngptsw],
+    zfu: Field[type_ngptsw],
+    zfd: Field[type_ngptsw],
+    ztau1: Field[type_ngptsw],
+    zssa1: Field[type_ngptsw],
+    # zasy1: Field[type_ngptsw],
+    ztau0: Field[type_ngptsw],
+    # zssa0: Field[type_ngptsw],
+    # zasy0: Field[type_ngptsw],
+    # zasy3: Field[type_ngptsw],
+    zssaw: Field[type_ngptsw],
+    # zasyw: Field[type_ngptsw],
+    zgam1: Field[type_ngptsw],
+    zgam2: Field[type_ngptsw],
+    zgam3: Field[type_ngptsw],
+    zgam4: Field[type_ngptsw],
+    za1: Field[type_ngptsw],
+    za2: Field[type_ngptsw],
+    zb1: Field[type_ngptsw],
+    zb2: Field[type_ngptsw],
+    zrk: Field[type_ngptsw],
+    zrk2: Field[type_ngptsw],
+    zrp: Field[type_ngptsw],
+    zrp1: Field[type_ngptsw],
+    zrm1: Field[type_ngptsw],
+    zrpp: Field[type_ngptsw],
+    zrkg1: Field[type_ngptsw],
+    zrkg3: Field[type_ngptsw],
+    zrkg4: Field[type_ngptsw],
+    zexp1: Field[type_ngptsw],
+    zexm1: Field[type_ngptsw],
+    zexp2: Field[type_ngptsw],
+    zexm2: Field[type_ngptsw],
+    zden1: Field[type_ngptsw],
+    zexp3: Field[type_ngptsw],
+    zexp4: Field[type_ngptsw],
+    ze1r45: Field[type_ngptsw],
+    ftind: Field[type_ngptsw],
+    zsolar: Field[type_ngptsw],
+    ztdbt0: Field[type_ngptsw],
+    zr1: Field[type_ngptsw],
+    zr2: Field[type_ngptsw],
+    zr3: Field[type_ngptsw],
+    zr4: Field[type_ngptsw],
+    zr5: Field[type_ngptsw],
+    zt1: Field[type_ngptsw],
+    zt2: Field[type_ngptsw],
+    zt3: Field[type_ngptsw],
+    zf1: Field[type_ngptsw],
+    zf2: Field[type_ngptsw],
+    zrpp1: Field[type_ngptsw],
+    zrupd: Field[type_ngptsw],
+    zrupb: Field[type_ngptsw],
+    ztdn: Field[type_ngptsw],
+    zrdnd: Field[type_ngptsw],
+    zb11: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    zb22: Field[gtscript.IJ, (DTYPE_FLT, (ngptsw,))],
+    jb: FIELD_INT,
+    ib: FIELD_INT,
+    ibd: FIELD_INT,
+    NGB: Field[type_ngptsw],
+    idxsfc: Field[(DTYPE_INT, (14,))],
+    itind: FIELD_INT,
+        # fxupc: Field[type_nbdsw],
+        # fxdnc: Field[type_nbdsw],
+    fxup0: Field[type_nbdsw],
+    fxdn0: Field[type_nbdsw],
+        # ftoauc: FIELD_2D,
+        # ftoau0: FIELD_2D,
+        # ftoadc: FIELD_2D,
+        # fsfcuc: FIELD_2D,
+        # fsfcu0: FIELD_2D,
+        # fsfcdc: FIELD_2D,
+        # fsfcd0: FIELD_2D,
+        # sfbmc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # sfdfc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    sfbm0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+    sfdf0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
+        # suvbfc: FIELD_2D,
+        # suvbf0: FIELD_2D,
+):
+    from __externals__ import (
+        ngptsw,
+        bpade,
+        oneminus,
+        ftiny,
+        zcrit,
+        zsr3,
+        od_lo,
+        eps1,
+        eps,
+    )
 
     with computation(BACKWARD), interval(0, -1):
 
@@ -3321,20 +3590,20 @@ ibd0 = nuvb - nblow
     },
 )
 def spcvrtm_allsky(
-    ssolar: FIELD_2D,
+        # ssolar: FIELD_2D,
     cosz: FIELD_2D,
     sntz: FIELD_2D,
-    albbm: Field[(DTYPE_FLT, (2,))],
-    albdf: Field[(DTYPE_FLT, (2,))],
-    sfluxzen: Field[gtscript.IJ, type_ngptsw],
+        # albbm: Field[(DTYPE_FLT, (2,))],
+        # albdf: Field[(DTYPE_FLT, (2,))],
+        # sfluxzen: Field[gtscript.IJ, type_ngptsw],
     cldfmc: Field[type_ngptsw],
     cf1: FIELD_2D,
-    cf0: FIELD_2D,
-    taug: Field[type_ngptsw],
-    taur: Field[type_ngptsw],
-    tauae: Field[type_nbdsw],
-    ssaae: Field[type_nbdsw],
-    asyae: Field[type_nbdsw],
+        # cf0: FIELD_2D,
+        # taug: Field[type_ngptsw],
+        # taur: Field[type_ngptsw],
+        # tauae: Field[type_nbdsw],
+        # ssaae: Field[type_nbdsw],
+        # asyae: Field[type_nbdsw],
     taucw: Field[type_nbdsw],
     ssacw: Field[type_nbdsw],
     asycw: Field[type_nbdsw],
@@ -3426,7 +3695,7 @@ def spcvrtm_allsky(
     sfdfc: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
     sfbm0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
     sfdf0: Field[gtscript.IJ, (DTYPE_FLT, (2,))],
-    suvbfc: FIELD_2D,
+    suvbfc: FIELD_2D, #necessary
     suvbf0: FIELD_2D,
 ):
     from __externals__ import (
@@ -3451,337 +3720,337 @@ def spcvrtm_allsky(
     #    - Pre-delta-scaling clear and cloudy direct beam transmittance
     #    - Call swflux() to compute the upward and downward radiation fluxes
 
-    with computation(BACKWARD):
-        with interval(-1, None):
-            if cf1 > eps:
-                for m0 in range(ngptsw):
-                    ztdbt0[0, 0, 0][m0] = 1.0
-        with interval(0, -1):
-            if cf1 > eps:
-                for m in range(ngptsw):
-                    jb = NGB[0, 0, 0][m] - 1
-                    ib = jb + 1 - nblow
-                    ibd = idxsfc[0, 0, 0][jb - 15] - 1
+    # with computation(BACKWARD):
+    #     with interval(-1, None):
+    #         if cf1 > eps:
+    #             for m0 in range(ngptsw):
+    #                 ztdbt0[0, 0, 0][m0] = 1.0
+    #     with interval(0, -1):
+    #         if cf1 > eps:
+    #             for m in range(ngptsw):
+    #                 jb = NGB[0, 0, 0][m] - 1
+    #                 ib = jb + 1 - nblow
+    #                 ibd = idxsfc[0, 0, 0][jb - 15] - 1
 
-                    if cldfmc[0, 0, 1][m] > ftiny:
-                        ztau0[0, 0, 0][m] = ztaus[0, 0, 0][m] + taucw[0, 0, 1][ib]
-                        zssa0[0, 0, 0][m] = zssas[0, 0, 0][m] + ssacw[0, 0, 1][ib]
-                        zasy0[0, 0, 0][m] = zasys[0, 0, 0][m] + asycw[0, 0, 1][ib]
-                        zssaw[0, 0, 0][m] = min(
-                            oneminus, zssa0[0, 0, 0][m] / ztau0[0, 0, 0][m]
-                        )
-                        zasyw[0, 0, 0][m] = zasy0[0, 0, 0][m] / max(
-                            ftiny, zssa0[0, 0, 0][m]
-                        )
+    #                 if cldfmc[0, 0, 1][m] > ftiny:
+    #                     ztau0[0, 0, 0][m] = ztaus[0, 0, 0][m] + taucw[0, 0, 1][ib]
+    #                     zssa0[0, 0, 0][m] = zssas[0, 0, 0][m] + ssacw[0, 0, 1][ib]
+    #                     zasy0[0, 0, 0][m] = zasys[0, 0, 0][m] + asycw[0, 0, 1][ib]
+    #                     zssaw[0, 0, 0][m] = min(
+    #                         oneminus, zssa0[0, 0, 0][m] / ztau0[0, 0, 0][m]
+    #                     )
+    #                     zasyw[0, 0, 0][m] = zasy0[0, 0, 0][m] / max(
+    #                         ftiny, zssa0[0, 0, 0][m]
+    #                     )
 
-                        #  --- ...  delta scaling for total-sky condition
-                        za1[0, 0, 0][m] = zasyw[0, 0, 0][m] * zasyw[0, 0, 0][m]
-                        za2[0, 0, 0][m] = zssaw[0, 0, 0][m] * za1[0, 0, 0][m]
+    #                     #  --- ...  delta scaling for total-sky condition
+    #                     za1[0, 0, 0][m] = zasyw[0, 0, 0][m] * zasyw[0, 0, 0][m]
+    #                     za2[0, 0, 0][m] = zssaw[0, 0, 0][m] * za1[0, 0, 0][m]
 
-                        ztau1[0, 0, 0][m] = (1.0 - za2[0, 0, 0][m]) * ztau0[0, 0, 0][m]
-                        zssa1[0, 0, 0][m] = (zssaw[0, 0, 0][m] - za2[0, 0, 0][m]) / (
-                            1.0 - za2[0, 0, 0][m]
-                        )
-                        zasy1[0, 0, 0][m] = zasyw[0, 0, 0][m] / (
-                            1.0 + zasyw[0, 0, 0][m]
-                        )
-                        zasy3[0, 0, 0][m] = 0.75 * zasy1[0, 0, 0][m]
+    #                     ztau1[0, 0, 0][m] = (1.0 - za2[0, 0, 0][m]) * ztau0[0, 0, 0][m]
+    #                     zssa1[0, 0, 0][m] = (zssaw[0, 0, 0][m] - za2[0, 0, 0][m]) / (
+    #                         1.0 - za2[0, 0, 0][m]
+    #                     )
+    #                     zasy1[0, 0, 0][m] = zasyw[0, 0, 0][m] / (
+    #                         1.0 + zasyw[0, 0, 0][m]
+    #                     )
+    #                     zasy3[0, 0, 0][m] = 0.75 * zasy1[0, 0, 0][m]
 
-                        #  --- ...  general two-stream expressions
-                        if iswmode == 1:
-                            zgam1[0, 0, 0][m] = 1.75 - zssa1[0, 0, 0][m] * (
-                                1.0 + zasy3[0, 0, 0][m]
-                            )
-                            zgam2[0, 0, 0][m] = -0.25 + zssa1[0, 0, 0][m] * (
-                                1.0 - zasy3[0, 0, 0][m]
-                            )
-                            zgam3[0, 0, 0][m] = 0.5 - zasy3[0, 0, 0][m] * cosz
-                        elif iswmode == 2:  # pifm
-                            zgam1[0, 0, 0][m] = 2.0 - zssa1[0, 0, 0][m] * (
-                                1.25 + zasy3[0, 0, 0][m]
-                            )
-                            zgam2[0, 0, 0][m] = (
-                                0.75 * zssa1[0, 0, 0][m] * (1.0 - zasy1[0, 0, 0][m])
-                            )
-                            zgam3[0, 0, 0][m] = 0.5 - zasy3[0, 0, 0][m] * cosz
-                        elif iswmode == 3:  # discrete ordinates
-                            zgam1[0, 0, 0][m] = (
-                                zsr3
-                                * (2.0 - zssa1[0, 0, 0][m] * (1.0 + zasy1[0, 0, 0][m]))
-                                * 0.5
-                            )
-                            zgam2[0, 0, 0][m] = (
-                                zsr3
-                                * zssa1[0, 0, 0][m]
-                                * (1.0 - zasy1[0, 0, 0][m])
-                                * 0.5
-                            )
-                            zgam3[0, 0, 0][m] = (
-                                1.0 - zsr3 * zasy1[0, 0, 0][m] * cosz
-                            ) * 0.5
+    #                     #  --- ...  general two-stream expressions
+    #                     if iswmode == 1:
+    #                         zgam1[0, 0, 0][m] = 1.75 - zssa1[0, 0, 0][m] * (
+    #                             1.0 + zasy3[0, 0, 0][m]
+    #                         )
+    #                         zgam2[0, 0, 0][m] = -0.25 + zssa1[0, 0, 0][m] * (
+    #                             1.0 - zasy3[0, 0, 0][m]
+    #                         )
+    #                         zgam3[0, 0, 0][m] = 0.5 - zasy3[0, 0, 0][m] * cosz
+    #                     elif iswmode == 2:  # pifm
+    #                         zgam1[0, 0, 0][m] = 2.0 - zssa1[0, 0, 0][m] * (
+    #                             1.25 + zasy3[0, 0, 0][m]
+    #                         )
+    #                         zgam2[0, 0, 0][m] = (
+    #                             0.75 * zssa1[0, 0, 0][m] * (1.0 - zasy1[0, 0, 0][m])
+    #                         )
+    #                         zgam3[0, 0, 0][m] = 0.5 - zasy3[0, 0, 0][m] * cosz
+    #                     elif iswmode == 3:  # discrete ordinates
+    #                         zgam1[0, 0, 0][m] = (
+    #                             zsr3
+    #                             * (2.0 - zssa1[0, 0, 0][m] * (1.0 + zasy1[0, 0, 0][m]))
+    #                             * 0.5
+    #                         )
+    #                         zgam2[0, 0, 0][m] = (
+    #                             zsr3
+    #                             * zssa1[0, 0, 0][m]
+    #                             * (1.0 - zasy1[0, 0, 0][m])
+    #                             * 0.5
+    #                         )
+    #                         zgam3[0, 0, 0][m] = (
+    #                             1.0 - zsr3 * zasy1[0, 0, 0][m] * cosz
+    #                         ) * 0.5
 
-                        zgam4[0, 0, 0][m] = 1.0 - zgam3[0, 0, 0][m]
+    #                     zgam4[0, 0, 0][m] = 1.0 - zgam3[0, 0, 0][m]
 
-                        #  --- ...  compute homogeneous reflectance and transmittance
-                        if zssaw[0, 0, 0][m] >= zcrit:  # for conservative scattering
-                            za1[0, 0, 0][m] = (
-                                zgam1[0, 0, 0][m] * cosz - zgam3[0, 0, 0][m]
-                            )
-                            za2[0, 0, 0][m] = zgam1[0, 0, 0][m] * ztau1[0, 0, 0][m]
+    #                     #  --- ...  compute homogeneous reflectance and transmittance
+    #                     if zssaw[0, 0, 0][m] >= zcrit:  # for conservative scattering
+    #                         za1[0, 0, 0][m] = (
+    #                             zgam1[0, 0, 0][m] * cosz - zgam3[0, 0, 0][m]
+    #                         )
+    #                         za2[0, 0, 0][m] = zgam1[0, 0, 0][m] * ztau1[0, 0, 0][m]
 
-                            #  --- ...  use exponential lookup table for transmittance, or expansion
-                            #           of exponential for low optical depth
+    #                         #  --- ...  use exponential lookup table for transmittance, or expansion
+    #                         #           of exponential for low optical depth
 
-                            zb1[0, 0, 0][m] = min(ztau1[0, 0, 0][m] * sntz, 500.0)
-                            if zb1[0, 0, 0][m] <= od_lo:
-                                zb2[0, 0, 0][m] = (
-                                    1.0
-                                    - zb1[0, 0, 0][m]
-                                    + 0.5 * zb1[0, 0, 0][m] * zb1[0, 0, 0][m]
-                                )
-                            else:
-                                ftind[0, 0, 0][m] = zb1[0, 0, 0][m] / (
-                                    bpade + zb1[0, 0, 0][m]
-                                )
-                                itind = ftind[0, 0, 0][m] * ntbmx + 0.5
-                                zb2[0, 0, 0][m] = exp_tbl[0, 0, 0][itind]
+    #                         zb1[0, 0, 0][m] = min(ztau1[0, 0, 0][m] * sntz, 500.0)
+    #                         if zb1[0, 0, 0][m] <= od_lo:
+    #                             zb2[0, 0, 0][m] = (
+    #                                 1.0
+    #                                 - zb1[0, 0, 0][m]
+    #                                 + 0.5 * zb1[0, 0, 0][m] * zb1[0, 0, 0][m]
+    #                             )
+    #                         else:
+    #                             ftind[0, 0, 0][m] = zb1[0, 0, 0][m] / (
+    #                                 bpade + zb1[0, 0, 0][m]
+    #                             )
+    #                             itind = ftind[0, 0, 0][m] * ntbmx + 0.5
+    #                             zb2[0, 0, 0][m] = exp_tbl[0, 0, 0][itind]
 
-    with computation(BACKWARD), interval(1, None):
-        if cf1 > eps:
-            for m2 in range(ngptsw):
-                if cldfmc[0, 0, 0][m2] > ftiny:
-                    if zssaw[0, 0, -1][m2] >= zcrit:
-                        #      ...  collimated beam
-                        zrefb[0, 0, 0][m2] = max(
-                            0.0,
-                            min(
-                                1.0,
-                                (
-                                    za2[0, 0, -1][m2]
-                                    - za1[0, 0, -1][m2] * (1.0 - zb2[0, 0, -1][m2])
-                                )
-                                / (1.0 + za2[0, 0, -1][m2]),
-                            ),
-                        )
-                        ztrab[0, 0, 0][m2] = max(
-                            0.0, min(1.0, 1.0 - zrefb[0, 0, 0][m2])
-                        )
+    # with computation(BACKWARD), interval(1, None):
+    #     if cf1 > eps:
+    #         for m2 in range(ngptsw):
+    #             if cldfmc[0, 0, 0][m2] > ftiny:
+    #                 if zssaw[0, 0, -1][m2] >= zcrit:
+    #                     #      ...  collimated beam
+    #                     zrefb[0, 0, 0][m2] = max(
+    #                         0.0,
+    #                         min(
+    #                             1.0,
+    #                             (
+    #                                 za2[0, 0, -1][m2]
+    #                                 - za1[0, 0, -1][m2] * (1.0 - zb2[0, 0, -1][m2])
+    #                             )
+    #                             / (1.0 + za2[0, 0, -1][m2]),
+    #                         ),
+    #                     )
+    #                     ztrab[0, 0, 0][m2] = max(
+    #                         0.0, min(1.0, 1.0 - zrefb[0, 0, 0][m2])
+    #                     )
 
-                        #      ...  isotropic incidence
-                        zrefd[0, 0, 0][m2] = max(
-                            0.0, min(1.0, za2[0, 0, -1][m2] / (1.0 + za2[0, 0, -1][m2]))
-                        )
-                        ztrad[0, 0, 0][m2] = max(
-                            0.0, min(1.0, 1.0 - zrefd[0, 0, 0][m2])
-                        )
+    #                     #      ...  isotropic incidence
+    #                     zrefd[0, 0, 0][m2] = max(
+    #                         0.0, min(1.0, za2[0, 0, -1][m2] / (1.0 + za2[0, 0, -1][m2]))
+    #                     )
+    #                     ztrad[0, 0, 0][m2] = max(
+    #                         0.0, min(1.0, 1.0 - zrefd[0, 0, 0][m2])
+    #                     )
 
-    with computation(BACKWARD), interval(0, -1):
-        if cf1 > eps:
-            for m3 in range(ngptsw):
-                if cldfmc[0, 0, 1][m3] > ftiny:
-                    if zssaw[0, 0, 0][m3] < zcrit:  # for non-conservative scattering
-                        za1[0, 0, 0][m3] = (
-                            zgam1[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
-                            + zgam2[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
-                        )
-                        za2[0, 0, 0][m3] = (
-                            zgam1[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
-                            + zgam2[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
-                        )
-                        zrk[0, 0, 0][m3] = sqrt(
-                            (zgam1[0, 0, 0][m3] - zgam2[0, 0, 0][m3])
-                            * (zgam1[0, 0, 0][m3] + zgam2[0, 0, 0][m3])
-                        )
-                        zrk2[0, 0, 0][m3] = 2.0 * zrk[0, 0, 0][m3]
+    # with computation(BACKWARD), interval(0, -1):
+    #     if cf1 > eps:
+    #         for m3 in range(ngptsw):
+    #             if cldfmc[0, 0, 1][m3] > ftiny:
+    #                 if zssaw[0, 0, 0][m3] < zcrit:  # for non-conservative scattering
+    #                     za1[0, 0, 0][m3] = (
+    #                         zgam1[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
+    #                         + zgam2[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
+    #                     )
+    #                     za2[0, 0, 0][m3] = (
+    #                         zgam1[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
+    #                         + zgam2[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
+    #                     )
+    #                     zrk[0, 0, 0][m3] = sqrt(
+    #                         (zgam1[0, 0, 0][m3] - zgam2[0, 0, 0][m3])
+    #                         * (zgam1[0, 0, 0][m3] + zgam2[0, 0, 0][m3])
+    #                     )
+    #                     zrk2[0, 0, 0][m3] = 2.0 * zrk[0, 0, 0][m3]
 
-                        zrp[0, 0, 0][m3] = zrk[0, 0, 0][m3] * cosz
-                        zrp1[0, 0, 0][m3] = 1.0 + zrp[0, 0, 0][m3]
-                        zrm1[0, 0, 0][m3] = 1.0 - zrp[0, 0, 0][m3]
-                        zrpp1[0, 0, 0][m3] = 1.0 - zrp[0, 0, 0][m3] * zrp[0, 0, 0][m3]
-                        tmp = max(flimit, abs(zrpp1[0, 0, 0][m3]))
-                        zrpp[0, 0, 0][m3] = (
-                            tmp if zrpp1[0, 0, 0][m3] >= 0 else -tmp
-                        )  # avoid numerical singularity
-                        zrkg1[0, 0, 0][m3] = zrk[0, 0, 0][m3] + zgam1[0, 0, 0][m3]
-                        zrkg3[0, 0, 0][m3] = zrk[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
-                        zrkg4[0, 0, 0][m3] = zrk[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
+    #                     zrp[0, 0, 0][m3] = zrk[0, 0, 0][m3] * cosz
+    #                     zrp1[0, 0, 0][m3] = 1.0 + zrp[0, 0, 0][m3]
+    #                     zrm1[0, 0, 0][m3] = 1.0 - zrp[0, 0, 0][m3]
+    #                     zrpp1[0, 0, 0][m3] = 1.0 - zrp[0, 0, 0][m3] * zrp[0, 0, 0][m3]
+    #                     tmp = max(flimit, abs(zrpp1[0, 0, 0][m3]))
+    #                     zrpp[0, 0, 0][m3] = (
+    #                         tmp if zrpp1[0, 0, 0][m3] >= 0 else -tmp
+    #                     )  # avoid numerical singularity
+    #                     zrkg1[0, 0, 0][m3] = zrk[0, 0, 0][m3] + zgam1[0, 0, 0][m3]
+    #                     zrkg3[0, 0, 0][m3] = zrk[0, 0, 0][m3] * zgam3[0, 0, 0][m3]
+    #                     zrkg4[0, 0, 0][m3] = zrk[0, 0, 0][m3] * zgam4[0, 0, 0][m3]
 
-                        zr1[0, 0, 0][m3] = zrm1[0, 0, 0][m3] * (
-                            za2[0, 0, 0][m3] + zrkg3[0, 0, 0][m3]
-                        )
-                        zr2[0, 0, 0][m3] = zrp1[0, 0, 0][m3] * (
-                            za2[0, 0, 0][m3] - zrkg3[0, 0, 0][m3]
-                        )
-                        zr3[0, 0, 0][m3] = zrk2[0, 0, 0][m3] * (
-                            zgam3[0, 0, 0][m3] - za2[0, 0, 0][m3] * cosz
-                        )
-                        zr4[0, 0, 0][m3] = zrpp[0, 0, 0][m3] * zrkg1[0, 0, 0][m3]
-                        zr5[0, 0, 0][m3] = zrpp[0, 0, 0][m3] * (
-                            zrk[0, 0, 0][m3] - zgam1[0, 0, 0][m3]
-                        )
+    #                     zr1[0, 0, 0][m3] = zrm1[0, 0, 0][m3] * (
+    #                         za2[0, 0, 0][m3] + zrkg3[0, 0, 0][m3]
+    #                     )
+    #                     zr2[0, 0, 0][m3] = zrp1[0, 0, 0][m3] * (
+    #                         za2[0, 0, 0][m3] - zrkg3[0, 0, 0][m3]
+    #                     )
+    #                     zr3[0, 0, 0][m3] = zrk2[0, 0, 0][m3] * (
+    #                         zgam3[0, 0, 0][m3] - za2[0, 0, 0][m3] * cosz
+    #                     )
+    #                     zr4[0, 0, 0][m3] = zrpp[0, 0, 0][m3] * zrkg1[0, 0, 0][m3]
+    #                     zr5[0, 0, 0][m3] = zrpp[0, 0, 0][m3] * (
+    #                         zrk[0, 0, 0][m3] - zgam1[0, 0, 0][m3]
+    #                     )
 
-                        zt1[0, 0, 0][m3] = zrp1[0, 0, 0][m3] * (
-                            za1[0, 0, 0][m3] + zrkg4[0, 0, 0][m3]
-                        )
-                        zt2[0, 0, 0][m3] = zrm1[0, 0, 0][m3] * (
-                            za1[0, 0, 0][m3] - zrkg4[0, 0, 0][m3]
-                        )
-                        zt3[0, 0, 0][m3] = zrk2[0, 0, 0][m3] * (
-                            zgam4[0, 0, 0][m3] + za1[0, 0, 0][m3] * cosz
-                        )
+    #                     zt1[0, 0, 0][m3] = zrp1[0, 0, 0][m3] * (
+    #                         za1[0, 0, 0][m3] + zrkg4[0, 0, 0][m3]
+    #                     )
+    #                     zt2[0, 0, 0][m3] = zrm1[0, 0, 0][m3] * (
+    #                         za1[0, 0, 0][m3] - zrkg4[0, 0, 0][m3]
+    #                     )
+    #                     zt3[0, 0, 0][m3] = zrk2[0, 0, 0][m3] * (
+    #                         zgam4[0, 0, 0][m3] + za1[0, 0, 0][m3] * cosz
+    #                     )
 
-                        #  --- ...  use exponential lookup table for transmittance, or expansion
-                        #           of exponential for low optical depth
+    #                     #  --- ...  use exponential lookup table for transmittance, or expansion
+    #                     #           of exponential for low optical depth
 
-                        zb1[0, 0, 0][m3] = min(
-                            zrk[0, 0, 0][m3] * ztau1[0, 0, 0][m3], 500.0
-                        )
-                        if zb1[0, 0, 0][m3] <= od_lo:
-                            zexm1[0, 0, 0][m3] = (
-                                1.0
-                                - zb1[0, 0, 0][m3]
-                                + 0.5 * zb1[0, 0, 0][m3] * zb1[0, 0, 0][m3]
-                            )
-                        else:
-                            ftind[0, 0, 0][m3] = zb1[0, 0, 0][m3] / (
-                                bpade + zb1[0, 0, 0][m3]
-                            )
-                            itind = ftind[0, 0, 0][m3] * ntbmx + 0.5
-                            zexm1[0, 0, 0][m3] = exp_tbl[0, 0, 0][itind]
+    #                     zb1[0, 0, 0][m3] = min(
+    #                         zrk[0, 0, 0][m3] * ztau1[0, 0, 0][m3], 500.0
+    #                     )
+    #                     if zb1[0, 0, 0][m3] <= od_lo:
+    #                         zexm1[0, 0, 0][m3] = (
+    #                             1.0
+    #                             - zb1[0, 0, 0][m3]
+    #                             + 0.5 * zb1[0, 0, 0][m3] * zb1[0, 0, 0][m3]
+    #                         )
+    #                     else:
+    #                         ftind[0, 0, 0][m3] = zb1[0, 0, 0][m3] / (
+    #                             bpade + zb1[0, 0, 0][m3]
+    #                         )
+    #                         itind = ftind[0, 0, 0][m3] * ntbmx + 0.5
+    #                         zexm1[0, 0, 0][m3] = exp_tbl[0, 0, 0][itind]
 
-                        zexp1[0, 0, 0][m3] = 1.0 / zexm1[0, 0, 0][m3]
+    #                     zexp1[0, 0, 0][m3] = 1.0 / zexm1[0, 0, 0][m3]
 
-                        zb2[0, 0, 0][m3] = min(ztau1[0, 0, 0][m3] * sntz, 500.0)
-                        if zb2[0, 0, 0][m3] <= od_lo:
-                            zexm2[0, 0, 0][m3] = (
-                                1.0
-                                - zb2[0, 0, 0][m3]
-                                + 0.5 * zb2[0, 0, 0][m3] * zb2[0, 0, 0][m3]
-                            )
-                        else:
-                            ftind[0, 0, 0][m3] = zb2[0, 0, 0][m3] / (
-                                bpade + zb2[0, 0, 0][m3]
-                            )
-                            itind = ftind[0, 0, 0][m3] * ntbmx + 0.5
-                            zexm2[0, 0, 0][m3] = exp_tbl[0, 0, 0][itind]
+    #                     zb2[0, 0, 0][m3] = min(ztau1[0, 0, 0][m3] * sntz, 500.0)
+    #                     if zb2[0, 0, 0][m3] <= od_lo:
+    #                         zexm2[0, 0, 0][m3] = (
+    #                             1.0
+    #                             - zb2[0, 0, 0][m3]
+    #                             + 0.5 * zb2[0, 0, 0][m3] * zb2[0, 0, 0][m3]
+    #                         )
+    #                     else:
+    #                         ftind[0, 0, 0][m3] = zb2[0, 0, 0][m3] / (
+    #                             bpade + zb2[0, 0, 0][m3]
+    #                         )
+    #                         itind = ftind[0, 0, 0][m3] * ntbmx + 0.5
+    #                         zexm2[0, 0, 0][m3] = exp_tbl[0, 0, 0][itind]
 
-                        zexp2[0, 0, 0][m3] = 1.0 / zexm2[0, 0, 0][m3]
-                        ze1r45[0, 0, 0][m3] = (
-                            zr4[0, 0, 0][m3] * zexp1[0, 0, 0][m3]
-                            + zr5[0, 0, 0][m3] * zexm1[0, 0, 0][m3]
-                        )
+    #                     zexp2[0, 0, 0][m3] = 1.0 / zexm2[0, 0, 0][m3]
+    #                     ze1r45[0, 0, 0][m3] = (
+    #                         zr4[0, 0, 0][m3] * zexp1[0, 0, 0][m3]
+    #                         + zr5[0, 0, 0][m3] * zexm1[0, 0, 0][m3]
+    #                     )
 
-    with computation(BACKWARD), interval(1, None):
-        if cf1 > eps:
-            for mm3 in range(ngptsw):
-                if cldfmc[0, 0, 0][mm3] > ftiny:
-                    if zssaw[0, 0, -1][mm3] < zcrit:
-                        #      ...  collimated beam
-                        if (
-                            ze1r45[0, 0, -1][mm3] >= -eps1
-                            and ze1r45[0, 0, -1][mm3] <= eps1
-                        ):
-                            zrefb[0, 0, 0][mm3] = eps1
-                            ztrab[0, 0, 0][mm3] = zexm2[0, 0, -1][mm3]
-                        else:
-                            zden1[0, 0, 0][mm3] = (
-                                zssa1[0, 0, -1][mm3] / ze1r45[0, 0, -1][mm3]
-                            )
-                            zrefb[0, 0, 0][mm3] = max(
-                                0.0,
-                                min(
-                                    1.0,
-                                    (
-                                        zr1[0, 0, -1][mm3] * zexp1[0, 0, -1][mm3]
-                                        - zr2[0, 0, -1][mm3] * zexm1[0, 0, -1][mm3]
-                                        - zr3[0, 0, -1][mm3] * zexm2[0, 0, -1][mm3]
-                                    )
-                                    * zden1[0, 0, 0][mm3],
-                                ),
-                            )
-                            ztrab[0, 0, 0][mm3] = max(
-                                0.0,
-                                min(
-                                    1.0,
-                                    zexm2[0, 0, -1][mm3]
-                                    * (
-                                        1.0
-                                        - (
-                                            zt1[0, 0, -1][mm3] * zexp1[0, 0, -1][mm3]
-                                            - zt2[0, 0, -1][mm3] * zexm1[0, 0, -1][mm3]
-                                            - zt3[0, 0, -1][mm3] * zexp2[0, 0, -1][mm3]
-                                        )
-                                        * zden1[0, 0, 0][mm3]
-                                    ),
-                                ),
-                            )
+    # with computation(BACKWARD), interval(1, None):
+    #     if cf1 > eps:
+    #         for mm3 in range(ngptsw):
+    #             if cldfmc[0, 0, 0][mm3] > ftiny:
+    #                 if zssaw[0, 0, -1][mm3] < zcrit:
+    #                     #      ...  collimated beam
+    #                     if (
+    #                         ze1r45[0, 0, -1][mm3] >= -eps1
+    #                         and ze1r45[0, 0, -1][mm3] <= eps1
+    #                     ):
+    #                         zrefb[0, 0, 0][mm3] = eps1
+    #                         ztrab[0, 0, 0][mm3] = zexm2[0, 0, -1][mm3]
+    #                     else:
+    #                         zden1[0, 0, 0][mm3] = (
+    #                             zssa1[0, 0, -1][mm3] / ze1r45[0, 0, -1][mm3]
+    #                         )
+    #                         zrefb[0, 0, 0][mm3] = max(
+    #                             0.0,
+    #                             min(
+    #                                 1.0,
+    #                                 (
+    #                                     zr1[0, 0, -1][mm3] * zexp1[0, 0, -1][mm3]
+    #                                     - zr2[0, 0, -1][mm3] * zexm1[0, 0, -1][mm3]
+    #                                     - zr3[0, 0, -1][mm3] * zexm2[0, 0, -1][mm3]
+    #                                 )
+    #                                 * zden1[0, 0, 0][mm3],
+    #                             ),
+    #                         )
+    #                         ztrab[0, 0, 0][mm3] = max(
+    #                             0.0,
+    #                             min(
+    #                                 1.0,
+    #                                 zexm2[0, 0, -1][mm3]
+    #                                 * (
+    #                                     1.0
+    #                                     - (
+    #                                         zt1[0, 0, -1][mm3] * zexp1[0, 0, -1][mm3]
+    #                                         - zt2[0, 0, -1][mm3] * zexm1[0, 0, -1][mm3]
+    #                                         - zt3[0, 0, -1][mm3] * zexp2[0, 0, -1][mm3]
+    #                                     )
+    #                                     * zden1[0, 0, 0][mm3]
+    #                                 ),
+    #                             ),
+    #                         )
 
-                        #      ...  diffuse beam
-                        zden1[0, 0, 0][mm3] = zr4[0, 0, -1][mm3] / (
-                            ze1r45[0, 0, -1][mm3] * zrkg1[0, 0, -1][mm3]
-                        )
-                        zrefd[0, 0, 0][mm3] = max(
-                            0.0,
-                            min(
-                                1.0,
-                                zgam2[0, 0, -1][mm3]
-                                * (zexp1[0, 0, -1][mm3] - zexm1[0, 0, -1][mm3])
-                                * zden1[0, 0, 0][mm3],
-                            ),
-                        )
-                        ztrad[0, 0, 0][mm3] = max(
-                            0.0, min(1.0, zrk2[0, 0, -1][mm3] * zden1[0, 0, 0][mm3])
-                        )
+    #                     #      ...  diffuse beam
+    #                     zden1[0, 0, 0][mm3] = zr4[0, 0, -1][mm3] / (
+    #                         ze1r45[0, 0, -1][mm3] * zrkg1[0, 0, -1][mm3]
+    #                     )
+    #                     zrefd[0, 0, 0][mm3] = max(
+    #                         0.0,
+    #                         min(
+    #                             1.0,
+    #                             zgam2[0, 0, -1][mm3]
+    #                             * (zexp1[0, 0, -1][mm3] - zexm1[0, 0, -1][mm3])
+    #                             * zden1[0, 0, 0][mm3],
+    #                         ),
+    #                     )
+    #                     ztrad[0, 0, 0][mm3] = max(
+    #                         0.0, min(1.0, zrk2[0, 0, -1][mm3] * zden1[0, 0, 0][mm3])
+    #                     )
 
-    with computation(BACKWARD), interval(0, -1):
-        if cf1 > eps:
-            for m4 in range(ngptsw):
-                if cldfmc[0, 0, 1][m4] > ftiny:
-                    #  --- ...  direct beam transmittance. use exponential lookup table
-                    #           for transmittance, or expansion of exponential for low
-                    #           optical depth
+    # with computation(BACKWARD), interval(0, -1):
+    #     if cf1 > eps:
+    #         for m4 in range(ngptsw):
+    #             if cldfmc[0, 0, 1][m4] > ftiny:
+    #                 #  --- ...  direct beam transmittance. use exponential lookup table
+    #                 #           for transmittance, or expansion of exponential for low
+    #                 #           optical depth
 
-                    zr1[0, 0, 0][m4] = ztau1[0, 0, 0][m4] * sntz
-                    if zr1[0, 0, 0][m4] <= od_lo:
-                        zexp3[0, 0, 0][m4] = (
-                            1.0
-                            - zr1[0, 0, 0][m4]
-                            + 0.5 * zr1[0, 0, 0][m4] * zr1[0, 0, 0][m4]
-                        )
-                    else:
-                        ftind[0, 0, 0][m4] = zr1[0, 0, 0][m4] / (
-                            bpade + zr1[0, 0, 0][m4]
-                        )
-                        itind = max(0, min(ntbmx, 0.5 + ntbmx * ftind[0, 0, 0][m4]))
-                        zexp3[0, 0, 0][m4] = exp_tbl[0, 0, 0][itind]
+    #                 zr1[0, 0, 0][m4] = ztau1[0, 0, 0][m4] * sntz
+    #                 if zr1[0, 0, 0][m4] <= od_lo:
+    #                     zexp3[0, 0, 0][m4] = (
+    #                         1.0
+    #                         - zr1[0, 0, 0][m4]
+    #                         + 0.5 * zr1[0, 0, 0][m4] * zr1[0, 0, 0][m4]
+    #                     )
+    #                 else:
+    #                     ftind[0, 0, 0][m4] = zr1[0, 0, 0][m4] / (
+    #                         bpade + zr1[0, 0, 0][m4]
+    #                     )
+    #                     itind = max(0, min(ntbmx, 0.5 + ntbmx * ftind[0, 0, 0][m4]))
+    #                     zexp3[0, 0, 0][m4] = exp_tbl[0, 0, 0][itind]
 
-                    ztdbt[0, 0, 0][m4] = zexp3[0, 0, 0][m4] * ztdbt[0, 0, 1][m4]
+    #                 ztdbt[0, 0, 0][m4] = zexp3[0, 0, 0][m4] * ztdbt[0, 0, 1][m4]
 
-                    #  --- ...  pre-delta-scaling clear and cloudy direct beam transmittance
-                    #           (must use 'orig', unscaled cloud optical depth)
+    #                 #  --- ...  pre-delta-scaling clear and cloudy direct beam transmittance
+    #                 #           (must use 'orig', unscaled cloud optical depth)
 
-                    zr1[0, 0, 0][m4] = ztau0[0, 0, 0][m4] * sntz
-                    if zr1[0, 0, 0][m4] <= od_lo:
-                        zexp4[0, 0, 0][m4] = (
-                            1.0
-                            - zr1[0, 0, 0][m4]
-                            + 0.5 * zr1[0, 0, 0][m4] * zr1[0, 0, 0][m4]
-                        )
-                    else:
-                        ftind[0, 0, 0][m4] = zr1[0, 0, 0][m4] / (
-                            bpade + zr1[0, 0, 0][m4]
-                        )
-                        itind = max(0, min(ntbmx, 0.5 + ntbmx * ftind[0, 0, 0][m4]))
-                        zexp4[0, 0, 0][m4] = exp_tbl[0, 0, 0][itind]
+    #                 zr1[0, 0, 0][m4] = ztau0[0, 0, 0][m4] * sntz
+    #                 if zr1[0, 0, 0][m4] <= od_lo:
+    #                     zexp4[0, 0, 0][m4] = (
+    #                         1.0
+    #                         - zr1[0, 0, 0][m4]
+    #                         + 0.5 * zr1[0, 0, 0][m4] * zr1[0, 0, 0][m4]
+    #                     )
+    #                 else:
+    #                     ftind[0, 0, 0][m4] = zr1[0, 0, 0][m4] / (
+    #                         bpade + zr1[0, 0, 0][m4]
+    #                     )
+    #                     itind = max(0, min(ntbmx, 0.5 + ntbmx * ftind[0, 0, 0][m4]))
+    #                     zexp4[0, 0, 0][m4] = exp_tbl[0, 0, 0][itind]
 
-                    ztdbt0[0, 0, 0][m4] = zexp4[0, 0, 0][m4] * ztdbt0[0, 0, 1][m4]
+    #                 ztdbt0[0, 0, 0][m4] = zexp4[0, 0, 0][m4] * ztdbt0[0, 0, 1][m4]
 
-                else:
-                    #  --- ...  direct beam transmittance
-                    ztdbt[0, 0, 0][m4] = zldbt[0, 0, 1][m4] * ztdbt[0, 0, 1][m4]
+    #             else:
+    #                 #  --- ...  direct beam transmittance
+    #                 ztdbt[0, 0, 0][m4] = zldbt[0, 0, 1][m4] * ztdbt[0, 0, 1][m4]
 
-                    #  --- ...  pre-delta-scaling clear and cloudy direct beam transmittance
-                    ztdbt0[0, 0, 0][m4] = zldbt0[0, 0, 0][m4] * ztdbt0[0, 0, 1][m4]
+    #                 #  --- ...  pre-delta-scaling clear and cloudy direct beam transmittance
+    #                 ztdbt0[0, 0, 0][m4] = zldbt0[0, 0, 0][m4] * ztdbt0[0, 0, 1][m4]
 
     # Need to incorporate the vrtqdr subroutine here, since I don't know
     # of a way to specify the interval within a gtscript function. Could be pulled
@@ -4094,4 +4363,3 @@ def finalloop(
                 # --- ...  optional clear sky heating rates
                 if lhsw0:
                     hsw0 = (fnetc - fnetc[0, 0, -1]) * rfdelp
-"""

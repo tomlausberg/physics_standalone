@@ -258,7 +258,7 @@ def firstloop(
 
             zcf1 = 1.0 - zcf0
 
-"""
+
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -4095,5 +4095,3 @@ def finalloop(
                 # --- ...  optional clear sky heating rates
                 if lhsw0:
                     hsw0 = (fnetc - fnetc[0, 0, -1]) * rfdelp
-
-"""
