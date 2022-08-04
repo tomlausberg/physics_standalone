@@ -2978,6 +2978,8 @@ def spcvrtm_clearsky_a(
                 )
                 ztrad[0, 0, 0][nn3] = max(0.0, min(1.0, 1.0 - zrefd[0, 0, 0][nn3]))
 
+
+"""
 @stencil(
     backend=backend,
     rebuild=rebuild,
@@ -4363,3 +4365,4 @@ def finalloop(
                 # --- ...  optional clear sky heating rates
                 if lhsw0:
                     hsw0 = (fnetc - fnetc[0, 0, -1]) * rfdelp
+"""
